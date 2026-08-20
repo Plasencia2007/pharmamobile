@@ -5,4 +5,14 @@ data class Pedido(
     val cliente: Cliente,
     val detalles: List<DetallePedido>,
     val estado: EstadoPedido
-)
+) {
+    init {
+        require(value = detalles.isNotEmpty()) {
+            "El pedido debe tener al menos un detalle"
+        }
+    }
+
+    fun total(): Double {
+        return detalles.sumOf { it.subtotal() }
+    }
+}
