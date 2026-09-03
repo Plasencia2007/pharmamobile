@@ -1,5 +1,6 @@
 package pe.edu.upeu.pharmamobile.presentation.inicio
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -36,8 +37,11 @@ import androidx.compose.ui.unit.dp
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import org.jetbrains.compose.resources.painterResource
 import pe.edu.upeu.pharmamobile.navigation.Screen
 import pe.edu.upeu.pharmamobile.presentation.components.dashedBorder
+import pharmamobile.shared.generated.resources.Res
+import pharmamobile.shared.generated.resources.pharmamobile_logo
 
 @Composable
 fun InicioScreen(onNavigate: (Screen) -> Unit) {
@@ -49,8 +53,14 @@ fun InicioScreen(onNavigate: (Screen) -> Unit) {
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())
     ) {
         Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
+            Image(
+                painter = painterResource(Res.drawable.pharmamobile_logo),
+                contentDescription = "Logo PharmaMobile",
+                modifier = Modifier.size(40.dp)
+            )
             Text(
                 text = fecha.uppercase(),
+                modifier = Modifier.padding(top = 12.dp),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

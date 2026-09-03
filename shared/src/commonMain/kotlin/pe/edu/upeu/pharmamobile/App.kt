@@ -25,6 +25,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -41,6 +42,7 @@ import pe.edu.upeu.pharmamobile.presentation.config.ConfigScreen
 import pe.edu.upeu.pharmamobile.presentation.inicio.InicioScreen
 import pe.edu.upeu.pharmamobile.presentation.pedido.PedidoScreen
 import pe.edu.upeu.pharmamobile.presentation.producto.ProductoScreen
+import pe.edu.upeu.pharmamobile.presentation.producto.inventarioSimuladoInicial
 import pe.edu.upeu.pharmamobile.presentation.theme.PharmaMobileTheme
 
 private val destinos = listOf(Screen.Inicio, Screen.Productos, Screen.Clientes, Screen.Pedidos, Screen.Config)
@@ -52,6 +54,7 @@ fun App() {
     var darkTheme by remember { mutableStateOf(false) }
     var alertasStockBajo by remember { mutableStateOf(true) }
     var pantallaActual by remember { mutableStateOf<Screen>(Screen.Inicio) }
+    val inventarioProductos = remember { mutableStateListOf(*inventarioSimuladoInicial().toTypedArray()) }
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -109,7 +112,10 @@ fun App() {
             Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
                 when (pantallaActual) {
                     is Screen.Inicio -> InicioScreen(onNavigate = { pantallaActual = it })
-                    is Screen.Productos -> ProductoScreen(onSuccess = mostrarExito)
+                    is Screen.Productos -> ProductoScreen(
+                        inventario = inventarioProductos,
+                        onSuccess = mostrarExito
+                    )
                     is Screen.Clientes -> ClienteScreen(onSuccess = mostrarExito)
                     is Screen.Pedidos -> PedidoScreen(onSuccess = mostrarExito)
                     is Screen.Config -> ConfigScreen(
