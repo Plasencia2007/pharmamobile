@@ -25,7 +25,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -35,6 +34,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import org.koin.compose.KoinContext
+import org.koin.compose.viewmodel.koinViewModel
 import pe.edu.upeu.pharmamobile.navigation.Screen
 import pe.edu.upeu.pharmamobile.presentation.cliente.ClienteScreen
 import pe.edu.upeu.pharmamobile.presentation.components.PharmaTopBar
@@ -42,7 +43,7 @@ import pe.edu.upeu.pharmamobile.presentation.config.ConfigScreen
 import pe.edu.upeu.pharmamobile.presentation.inicio.InicioScreen
 import pe.edu.upeu.pharmamobile.presentation.pedido.PedidoScreen
 import pe.edu.upeu.pharmamobile.presentation.producto.ProductoScreen
-import pe.edu.upeu.pharmamobile.presentation.producto.inventarioSimuladoInicial
+import pe.edu.upeu.pharmamobile.presentation.producto.ProductoViewModel
 import pe.edu.upeu.pharmamobile.presentation.theme.PharmaMobileTheme
 
 private val destinos = listOf(Screen.Inicio, Screen.Productos, Screen.Clientes, Screen.Pedidos, Screen.Config)
@@ -50,11 +51,10 @@ private val destinos = listOf(Screen.Inicio, Screen.Productos, Screen.Clientes, 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Preview
-fun App() {
+fun App() = KoinContext {
     var darkTheme by remember { mutableStateOf(false) }
     var alertasStockBajo by remember { mutableStateOf(true) }
     var pantallaActual by remember { mutableStateOf<Screen>(Screen.Inicio) }
-    val inventarioProductos = remember { mutableStateListOf(*inventarioSimuladoInicial().toTypedArray()) }
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -112,10 +112,10 @@ fun App() {
             Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
                 when (pantallaActual) {
                     is Screen.Inicio -> InicioScreen(onNavigate = { pantallaActual = it })
-                    is Screen.Productos -> ProductoScreen(
-                        inventario = inventarioProductos,
-                        onSuccess = mostrarExito
-                    )
+                    is Screen.Productos -> {
+                        val productoViewModel = koinViewModel<ProductoViewModel>()
+                        ProductoScreen(viewModel = productoViewModel, onSuccess = mostrarExito)
+                    }
                     is Screen.Clientes -> ClienteScreen(onSuccess = mostrarExito)
                     is Screen.Pedidos -> PedidoScreen(onSuccess = mostrarExito)
                     is Screen.Config -> ConfigScreen(

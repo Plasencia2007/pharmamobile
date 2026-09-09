@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -26,16 +27,17 @@ import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import pe.edu.upeu.pharmamobile.domain.model.Producto
 import pe.edu.upeu.pharmamobile.presentation.components.DisplayHeading
 import pe.edu.upeu.pharmamobile.presentation.components.ErrorSummary
@@ -44,41 +46,32 @@ import pe.edu.upeu.pharmamobile.presentation.components.PharmaChip
 import pe.edu.upeu.pharmamobile.presentation.components.PharmaField
 
 private val CATEGORIAS = listOf("Analgésicos", "Antibióticos", "Cuidado")
-
-private const val UMBRAL_BAJO_STOCK = 5
-
-// Datos simulados: en un stock igual a 0 el producto se trata como Inactivo
-// (no como "Bajo stock"), ya que fuera de venta deja de ser inventario disponible.
-fun inventarioSimuladoInicial(): List<Producto> = listOf(
-    Producto(id = 1L, nombre = "Paracetamol", precio = 15.50, stock = 100, activo = true),
-    Producto(id = 2L, nombre = "Ibuprofeno", precio = 18.90, stock = 50, activo = true),
-    Producto(id = 3L, nombre = "Amoxicilina", precio = 25.00, stock = 5, activo = true),
-    Producto(id = 4L, nombre = "Loratadina", precio = 12.50, stock = 0, activo = false),
-    Producto(id = 5L, nombre = "Diclofenaco", precio = 20.00, stock = 3, activo = true)
-)
-
 private val PESTANAS = listOf("Activos", "Inactivos", "Bajo stock")
 
-// Stock igual a 0 se considera Inactivo, sin importar la bandera "activo":
-// un producto sin unidades no está disponible para la venta.
-private fun Producto.estaInactivo(): Boolean = !activo || stock == 0
-private fun Producto.esBajoStock(): Boolean = !estaInactivo() && stock <= UMBRAL_BAJO_STOCK
-
 private fun filtrarInventario(inventario: List<Producto>, pestana: Int): List<Producto> = when (pestana) {
-    0 -> inventario.filter { !it.estaInactivo() && !it.esBajoStock() }
+    0 -> inventario.filter { !it.estaInactivo() && !it.requiereReposicion() }
     1 -> inventario.filter { it.estaInactivo() }
-    2 -> inventario.filter { it.esBajoStock() }
+    2 -> inventario.filter { it.requiereReposicion() }
     else -> inventario
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductoScreen(
-    inventario: SnapshotStateList<Producto>,
+    viewModel: ProductoViewModel,
     onSuccess: (String) -> Unit
 ) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var tabSeleccionada by remember { mutableStateOf(0) }
     var mostrarFormulario by remember { mutableStateOf(false) }
+
+    LaunchedEffect(uiState.formulario.mensajeExito) {
+        uiState.formulario.mensajeExito?.let { mensaje ->
+            mostrarFormulario = false
+            onSuccess(mensaje)
+            viewModel.consumirMensajeExito()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -139,16 +132,42 @@ fun ProductoScreen(
             modifier = Modifier.padding(top = 14.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            val productosFiltrados = filtrarInventario(inventario, tabSeleccionada)
-            if (productosFiltrados.isEmpty()) {
-                Text(
-                    text = "No hay productos en esta categoría.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            } else {
-                productosFiltrados.forEach { producto ->
-                    ProductoInventarioItem(producto)
+            when (val fase = uiState.fase) {
+                is ProductoUiState.FaseInventario.Cargando -> {
+                    Box(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                    }
+                }
+                is ProductoUiState.FaseInventario.SinProductos -> {
+                    Text(
+                        text = "Aún no hay productos registrados.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                is ProductoUiState.FaseInventario.Error -> {
+                    Text(
+                        text = fase.mensaje,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+                is ProductoUiState.FaseInventario.ConProductos -> {
+                    val productosFiltrados = filtrarInventario(fase.productos, tabSeleccionada)
+                    if (productosFiltrados.isEmpty()) {
+                        Text(
+                            text = "No hay productos en esta categoría.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    } else {
+                        productosFiltrados.forEach { producto ->
+                            ProductoInventarioItem(producto)
+                        }
+                    }
                 }
             }
         }
@@ -162,11 +181,8 @@ fun ProductoScreen(
             containerColor = MaterialTheme.colorScheme.background
         ) {
             FormularioProducto(
-                inventario = inventario,
-                onSuccess = { mensaje ->
-                    mostrarFormulario = false
-                    onSuccess(mensaje)
-                }
+                formulario = uiState.formulario,
+                onRegistrar = { nombre, precio, stock -> viewModel.registrarProducto(nombre, precio, stock) }
             )
         }
     }
@@ -174,19 +190,15 @@ fun ProductoScreen(
 
 @Composable
 private fun FormularioProducto(
-    inventario: SnapshotStateList<Producto>,
-    onSuccess: (String) -> Unit
+    formulario: ProductoUiState.FormularioState,
+    onRegistrar: (nombre: String, precio: String, stock: String) -> Unit
 ) {
     var nombre by remember { mutableStateOf("") }
     var precio by remember { mutableStateOf("") }
     var stock by remember { mutableStateOf("") }
     var categoria by remember { mutableStateOf(CATEGORIAS.first()) }
 
-    var errorNombre by remember { mutableStateOf<String?>(null) }
-    var errorPrecio by remember { mutableStateOf<String?>(null) }
-    var errorStock by remember { mutableStateOf<String?>(null) }
-
-    val errores = listOfNotNull(errorNombre, errorPrecio, errorStock)
+    val errores = listOfNotNull(formulario.errorNombre, formulario.errorPrecio, formulario.errorStock)
 
     Column(
         modifier = Modifier
@@ -203,28 +215,28 @@ private fun FormularioProducto(
 
         PharmaField(
             value = nombre,
-            onValueChange = { nombre = it; errorNombre = null },
+            onValueChange = { nombre = it },
             label = "Nombre",
             placeholder = "Ibuprofeno 400 mg",
-            errorMessage = errorNombre
+            errorMessage = formulario.errorNombre
         )
 
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             PharmaField(
                 value = precio,
-                onValueChange = { precio = it; errorPrecio = null },
+                onValueChange = { precio = it },
                 label = "Precio",
                 placeholder = "S/ 0.00",
-                errorMessage = errorPrecio,
+                errorMessage = formulario.errorPrecio,
                 keyboardType = KeyboardType.Decimal,
                 modifier = Modifier.weight(1f)
             )
             PharmaField(
                 value = stock,
-                onValueChange = { stock = it; errorStock = null },
+                onValueChange = { stock = it },
                 label = "Stock",
                 placeholder = "0 uds.",
-                errorMessage = errorStock,
+                errorMessage = formulario.errorStock,
                 keyboardType = KeyboardType.Number,
                 modifier = Modifier.weight(1f)
             )
@@ -256,25 +268,8 @@ private fun FormularioProducto(
         ErrorSummary(cantidad = errores.size)
 
         FormButton(
-            text = "Registrar producto",
-            onClick = {
-                errorNombre = ProductoValidator.validarNombre(nombre)
-                errorPrecio = ProductoValidator.validarPrecio(precio)
-                errorStock = ProductoValidator.validarStock(stock)
-
-                if (errorNombre == null && errorPrecio == null && errorStock == null) {
-                    val siguienteId = (inventario.maxOfOrNull { it.id } ?: 0L) + 1
-                    inventario.add(
-                        Producto(
-                            id = siguienteId,
-                            nombre = nombre,
-                            precio = precio.toDouble(),
-                            stock = stock.toInt()
-                        )
-                    )
-                    onSuccess("Producto registrado en el inventario")
-                }
-            }
+            text = if (formulario.enviando) "Registrando..." else "Registrar producto",
+            onClick = { onRegistrar(nombre, precio, stock) }
         )
     }
 }
@@ -310,7 +305,7 @@ private fun EstadoBadge(producto: Producto) {
     val colores = MaterialTheme.colorScheme
     val (texto, color) = when {
         producto.estaInactivo() -> "Inactivo" to colores.onSurfaceVariant
-        producto.esBajoStock() -> "Bajo stock" to colores.error
+        producto.requiereReposicion() -> "Bajo stock" to colores.error
         else -> "Activo" to colores.primary
     }
     Text(
