@@ -17,14 +17,19 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -64,14 +69,20 @@ fun ProductoScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var tabSeleccionada by remember { mutableStateOf(0) }
     var mostrarFormulario by remember { mutableStateOf(false) }
+    var productoEditando by remember { mutableStateOf<Producto?>(null) }
+    var productoAEliminar by remember { mutableStateOf<Producto?>(null) }
 
     LaunchedEffect(uiState.formulario.mensajeExito) {
         uiState.formulario.mensajeExito?.let { mensaje ->
             mostrarFormulario = false
+            productoEditando = null
             onSuccess(mensaje)
             viewModel.consumirMensajeExito()
         }
     }
+
+    val operacion = uiState.operacion
+    val mensajeOperacionFallida = (operacion as? ProductoUiState.Operacion.Fallida)?.mensaje
 
     Column(
         modifier = Modifier
@@ -102,7 +113,10 @@ fun ProductoScreen(
                     .size(44.dp)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.primary)
-                    .clickable { mostrarFormulario = true },
+                    .clickable {
+                        productoEditando = null
+                        mostrarFormulario = true
+                    },
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -111,6 +125,17 @@ fun ProductoScreen(
                     tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
+        }
+
+        if (mensajeOperacionFallida != null) {
+            Text(
+                text = mensajeOperacionFallida,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier
+                    .padding(top = 12.dp)
+                    .clickable { viewModel.consumirOperacionFallida() }
+            )
         }
 
         TabRow(
@@ -165,7 +190,17 @@ fun ProductoScreen(
                         )
                     } else {
                         productosFiltrados.forEach { producto ->
-                            ProductoInventarioItem(producto)
+                            val procesando = operacion is ProductoUiState.Operacion.EnCurso &&
+                                operacion.productoId == producto.id
+                            ProductoInventarioItem(
+                                producto = producto,
+                                procesando = procesando,
+                                onEditar = {
+                                    productoEditando = producto
+                                    mostrarFormulario = true
+                                },
+                                onEliminar = { productoAEliminar = producto }
+                            )
                         }
                     }
                 }
@@ -176,29 +211,56 @@ fun ProductoScreen(
     if (mostrarFormulario) {
         val sheetState = rememberModalBottomSheetState()
         ModalBottomSheet(
-            onDismissRequest = { mostrarFormulario = false },
+            onDismissRequest = {
+                mostrarFormulario = false
+                productoEditando = null
+            },
             sheetState = sheetState,
             containerColor = MaterialTheme.colorScheme.background
         ) {
             FormularioProducto(
                 formulario = uiState.formulario,
-                onRegistrar = { nombre, precio, stock -> viewModel.registrarProducto(nombre, precio, stock) }
+                productoEditando = productoEditando,
+                onRegistrar = { nombre, precio, stock -> viewModel.registrarProducto(nombre, precio, stock) },
+                onActualizar = { producto, nombre, precio, stock ->
+                    viewModel.actualizarProducto(producto, nombre, precio, stock)
+                }
             )
         }
+    }
+
+    productoAEliminar?.let { producto ->
+        AlertDialog(
+            onDismissRequest = { productoAEliminar = null },
+            title = { Text("Eliminar producto") },
+            text = { Text("¿Seguro que quieres eliminar \"${producto.nombre}\" del inventario?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.eliminarProducto(producto.id)
+                    productoAEliminar = null
+                }) { Text("Eliminar", color = MaterialTheme.colorScheme.error) }
+            },
+            dismissButton = {
+                TextButton(onClick = { productoAEliminar = null }) { Text("Cancelar") }
+            }
+        )
     }
 }
 
 @Composable
 private fun FormularioProducto(
     formulario: ProductoUiState.FormularioState,
-    onRegistrar: (nombre: String, precio: String, stock: String) -> Unit
+    productoEditando: Producto?,
+    onRegistrar: (nombre: String, precio: String, stock: String) -> Unit,
+    onActualizar: (producto: Producto, nombre: String, precio: String, stock: String) -> Unit
 ) {
-    var nombre by remember { mutableStateOf("") }
-    var precio by remember { mutableStateOf("") }
-    var stock by remember { mutableStateOf("") }
+    var nombre by remember(productoEditando) { mutableStateOf(productoEditando?.nombre ?: "") }
+    var precio by remember(productoEditando) { mutableStateOf(productoEditando?.precio?.toString() ?: "") }
+    var stock by remember(productoEditando) { mutableStateOf(productoEditando?.stock?.toString() ?: "") }
     var categoria by remember { mutableStateOf(CATEGORIAS.first()) }
 
     val errores = listOfNotNull(formulario.errorNombre, formulario.errorPrecio, formulario.errorStock)
+    val editando = productoEditando != null
 
     Column(
         modifier = Modifier
@@ -206,9 +268,16 @@ private fun FormularioProducto(
             .padding(horizontal = 20.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        DisplayHeading(linea1 = "Registro de", linea2 = "producto")
+        DisplayHeading(
+            linea1 = if (editando) "Editar" else "Registro de",
+            linea2 = "producto"
+        )
         Text(
-            text = "Agrega un nuevo producto al inventario.",
+            text = if (editando) {
+                "Actualiza los datos de \"${productoEditando.nombre}\"."
+            } else {
+                "Agrega un nuevo producto al inventario."
+            },
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -268,22 +337,40 @@ private fun FormularioProducto(
         ErrorSummary(cantidad = errores.size)
 
         FormButton(
-            text = if (formulario.enviando) "Registrando..." else "Registrar producto",
-            onClick = { onRegistrar(nombre, precio, stock) }
+            text = when {
+                formulario.enviando && editando -> "Actualizando..."
+                formulario.enviando -> "Registrando..."
+                editando -> "Actualizar producto"
+                else -> "Registrar producto"
+            },
+            onClick = {
+                val actual = productoEditando
+                if (actual != null) {
+                    onActualizar(actual, nombre, precio, stock)
+                } else {
+                    onRegistrar(nombre, precio, stock)
+                }
+            }
         )
     }
 }
 
 @Composable
-private fun ProductoInventarioItem(producto: Producto) {
+private fun ProductoInventarioItem(
+    producto: Producto,
+    procesando: Boolean,
+    onEditar: () -> Unit,
+    onEliminar: () -> Unit
+) {
     val colores = MaterialTheme.colorScheme
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .background(colores.surfaceContainerHighest, RoundedCornerShape(14.dp))
-            .padding(16.dp)
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Column(modifier = Modifier.weight(1f)) {
+        Column(modifier = Modifier.weight(1f).padding(start = 4.dp)) {
             Text(
                 text = producto.nombre,
                 style = MaterialTheme.typography.titleMedium,
@@ -297,6 +384,30 @@ private fun ProductoInventarioItem(producto: Producto) {
             )
         }
         EstadoBadge(producto)
+        if (procesando) {
+            Box(modifier = Modifier.size(40.dp), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    strokeWidth = 2.dp,
+                    color = colores.primary
+                )
+            }
+        } else {
+            IconButton(onClick = onEditar) {
+                Icon(
+                    imageVector = Icons.Filled.Edit,
+                    contentDescription = "Editar ${producto.nombre}",
+                    tint = colores.onSurfaceVariant
+                )
+            }
+            IconButton(onClick = onEliminar) {
+                Icon(
+                    imageVector = Icons.Filled.Delete,
+                    contentDescription = "Eliminar ${producto.nombre}",
+                    tint = colores.error
+                )
+            }
+        }
     }
 }
 
