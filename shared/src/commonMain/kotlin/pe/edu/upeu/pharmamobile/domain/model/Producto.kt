@@ -5,12 +5,7 @@ data class Producto(
     val nombre: String,
     val precio: Double,
     val stock: Int,
-    val activo: Boolean = true,
-    // Campos opcionales que solo llena el catálogo remoto (Sesión 7): el
-    // registro manual del inventario no los conoce y se queda con "".
-    val descripcion: String = "",
-    val imagenUrl: String = "",
-    val categoriaProducto: String = ""
+    val activo: Boolean = true
 ) {
     companion object {
         const val STOCK_MINIMO = 5

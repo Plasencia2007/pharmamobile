@@ -32,7 +32,7 @@ class ProductoRepositoryRemoto(
     }
 
     override suspend fun listar(): List<Producto> {
-        val remotos = api.obtenerProductos().map { it.toDomain() }
+        val remotos = api.obtenerProductos().contenido.map { it.toDomain() }
         val locales = mutex.withLock { registradosLocalmente.toList() }
         return locales + remotos
     }
