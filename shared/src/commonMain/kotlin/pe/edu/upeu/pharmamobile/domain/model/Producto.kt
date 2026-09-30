@@ -7,6 +7,10 @@ data class Producto(
     val stock: Int,
     val activo: Boolean = true
 ) {
+    companion object {
+        const val STOCK_MINIMO = 5
+    }
+
     init {
         require(value = nombre.isNotBlank()) {
             "El nombre no puede estar vacío"
@@ -44,4 +48,12 @@ data class Producto(
             stock = stock - cantidad
         )
     }
+
+    // Regla de negocio propia: un producto sin unidades se considera inactivo
+    // sin importar la bandera "activo", porque deja de estar disponible para la venta.
+    fun estaInactivo(): Boolean = !activo || stock == 0
+
+    // Regla de negocio propia: requiere reposición si está activo y su stock
+    // llegó al umbral mínimo configurado (STOCK_MINIMO), pero aún no está en 0.
+    fun requiereReposicion(): Boolean = !estaInactivo() && stock <= STOCK_MINIMO
 }

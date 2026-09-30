@@ -3,12 +3,12 @@ package pe.edu.upeu.pharmamobile.domain.service
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import pe.edu.upeu.pharmamobile.data.repository.ProductoRepository
+import pe.edu.upeu.pharmamobile.data.repository.ProductoRepositorioEnMemoria
 import pe.edu.upeu.pharmamobile.domain.model.Producto
 import pe.edu.upeu.pharmamobile.domain.result.ResultadoProductos
 
 class ProductoService(
-    private val repository: ProductoRepository = ProductoRepository()
+    private val repository: ProductoRepositorioEnMemoria = ProductoRepositorioEnMemoria()
 ) {
 
     suspend fun obtenerProductos(): List<Producto> = repository.obtenerProductos()
