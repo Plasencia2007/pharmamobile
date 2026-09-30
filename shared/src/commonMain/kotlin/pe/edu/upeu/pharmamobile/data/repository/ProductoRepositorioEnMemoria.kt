@@ -67,4 +67,23 @@ class ProductoRepositorioEnMemoria : ProductoRepository {
         delay(500) // Estado de carga visible al listar
         return inventario.toList()
     }
+
+    override suspend fun obtener(id: Long): Producto {
+        delay(300)
+        return inventario.find { it.id == id }
+            ?: throw NoSuchElementException("Producto $id no encontrado")
+    }
+
+    override suspend fun actualizar(producto: Producto): Producto {
+        delay(500)
+        val indice = inventario.indexOfFirst { it.id == producto.id }
+        require(indice >= 0) { "Producto ${producto.id} no encontrado" }
+        inventario[indice] = producto
+        return producto
+    }
+
+    override suspend fun eliminar(id: Long) {
+        delay(300)
+        inventario.removeAll { it.id == id }
+    }
 }
