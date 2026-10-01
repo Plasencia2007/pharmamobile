@@ -50,13 +50,43 @@ como `single` en Koin.
 `DELETE` es un borrado lógico (`estado = false`): repetirlo sobre un
 producto ya inactivo responde 409, no 204.
 
-**Manejo de errores**: `data/remote/EjecutarLlamada.kt` traduce las
-excepciones de Ktor (`ClientRequestException`, `ServerResponseException`,
-`HttpRequestTimeoutException`, `IOException`) a `ErrorApi`
-(`domain/error/ErrorApi.kt`), que el `ViewModel` convierte en mensajes
-legibles. Ver `docs/S07_ActividadAutonoma_Plasencia.pdf` para la bitácora
-completa de pruebas de conexión (éxito, 404, sin conexión, timeout, campo
-desconocido en el JSON).
+### Manejo de errores
+
+`data/remote/EjecutarLlamada.kt` es el único punto que traduce las
+excepciones de Ktor a `ErrorApi` (`domain/error/ErrorApi.kt`); el resto
+del código (repositorio, casos de uso, `ViewModel`) solo conoce
+`Result<T>` y `ErrorApiException`.
+
+| Excepción de Ktor | `ErrorApi` | Mensaje al usuario |
+|---|---|---|
+| `ClientRequestException` (400) | `Validacion(porCampo)` | Mensaje real del servidor bajo el campo (`nombre`/`precio`/`stock`) |
+| `ClientRequestException` (404) | `NoEncontrado` | "El producto ya no existe." |
+| `ClientRequestException` (409) | `Conflicto(mensaje)` | Mensaje real del servidor (regla de negocio) |
+| `ServerResponseException` (5xx) | `Servidor` | "El servidor no pudo procesar la solicitud..." |
+| `HttpRequestTimeoutException` | `TiempoAgotado` | "La solicitud tardó demasiado..." |
+| `IOException` | `SinConexion` | "No hay conexión con el servidor." |
+| `CancellationException` | — | Se relanza sin traducir (no debe tratarse como error) |
+
+**Hallazgos de la bitácora de pruebas** (ver
+`docs/S08_ActividadAutonoma_Plasencia.pdf` para el detalle completo de
+los 8 escenarios con capturas):
+
+- **DELETE es un borrado lógico**: repetir un DELETE sobre un producto ya
+  inactivo responde **409** ("ya se encuentra inactivo"), no 404 como
+  asumiría un CRUD con borrado físico.
+- **Regla de negocio real**: crear/actualizar un producto con un nombre
+  ya existente responde 409 con `ErrorApi.Conflicto`.
+- **Cancelación (hallazgo importante)**: salir de la pantalla de
+  Productos mientras una operación está en curso **no cancela la
+  corrutina**. `App.kt` cambia de pantalla con un simple `when` sobre un
+  `remember { mutableStateOf<Screen> }`, sin un `NavHost` que le dé a
+  cada pantalla su propio `ViewModelStoreOwner`; `ProductoViewModel`
+  vive a nivel de Activity y sigue corriendo en segundo plano. El
+  resultado (éxito o error) se aplica igual, y el usuario solo lo ve si
+  vuelve a esa pantalla — no hay crash, pero tampoco hay cancelación
+  real. Documentado como mejora pendiente: la pantalla necesitaría su
+  propio `ViewModelStoreOwner` (por ejemplo con Navigation Compose) para
+  que `viewModelScope` se cancele al salir.
 
 **Levantar el backend localmente** (requiere PostgreSQL; el repo de
 PharmaSoft usado aquí fue portado de Oracle a Postgres):
