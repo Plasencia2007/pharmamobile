@@ -1,6 +1,7 @@
 package pe.edu.upeu.pharmamobile.presentation.producto
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -26,8 +27,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -40,7 +39,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import pe.edu.upeu.pharmamobile.domain.model.Producto
@@ -49,6 +51,9 @@ import pe.edu.upeu.pharmamobile.presentation.components.ErrorSummary
 import pe.edu.upeu.pharmamobile.presentation.components.FormButton
 import pe.edu.upeu.pharmamobile.presentation.components.PharmaChip
 import pe.edu.upeu.pharmamobile.presentation.components.PharmaField
+import pe.edu.upeu.pharmamobile.presentation.theme.Amber
+import pe.edu.upeu.pharmamobile.presentation.theme.Coral
+import pe.edu.upeu.pharmamobile.presentation.theme.Emerald
 
 private val CATEGORIAS = listOf("Analgésicos", "Antibióticos", "Cuidado")
 private val PESTANAS = listOf("Activos", "Inactivos", "Bajo stock")
@@ -110,9 +115,9 @@ fun ProductoScreen(
             }
             Box(
                 modifier = Modifier
-                    .size(44.dp)
+                    .size(46.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary)
+                    .background(Coral)
                     .clickable {
                         productoEditando = null
                         mostrarFormulario = true
@@ -122,7 +127,7 @@ fun ProductoScreen(
                 Icon(
                     imageVector = Icons.Filled.Add,
                     contentDescription = "Agregar producto",
-                    tint = MaterialTheme.colorScheme.onPrimary
+                    tint = Color.White
                 )
             }
         }
@@ -138,20 +143,11 @@ fun ProductoScreen(
             )
         }
 
-        TabRow(
-            modifier = Modifier.padding(top = 16.dp),
-            selectedTabIndex = tabSeleccionada,
-            containerColor = MaterialTheme.colorScheme.background,
-            contentColor = MaterialTheme.colorScheme.primary
-        ) {
-            PESTANAS.forEachIndexed { indice, titulo ->
-                Tab(
-                    selected = tabSeleccionada == indice,
-                    onClick = { tabSeleccionada = indice },
-                    text = { Text(titulo) }
-                )
-            }
-        }
+        PestanasSegmentadas(
+            seleccionada = tabSeleccionada,
+            onSeleccionar = { tabSeleccionada = it },
+            modifier = Modifier.padding(top = 16.dp)
+        )
 
         Column(
             modifier = Modifier.padding(top = 14.dp),
@@ -356,6 +352,47 @@ private fun FormularioProducto(
 }
 
 @Composable
+private fun PestanasSegmentadas(
+    seleccionada: Int,
+    onSeleccionar: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val colores = MaterialTheme.colorScheme
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(colores.surfaceVariant, RoundedCornerShape(999.dp))
+            .padding(4.dp)
+    ) {
+        PESTANAS.forEachIndexed { indice, titulo ->
+            val activa = indice == seleccionada
+            val acento = colorDePestana(indice)
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(999.dp))
+                    .background(if (activa) acento else Color.Transparent)
+                    .clickable { onSeleccionar(indice) }
+                    .padding(vertical = 9.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = titulo,
+                    style = MaterialTheme.typography.labelLarge,
+                    color = if (activa) Color.White else colores.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+private fun colorDePestana(indice: Int): Color = when (indice) {
+    0 -> Emerald
+    1 -> Color(0xFF69766F)
+    else -> Amber
+}
+
+@Composable
 private fun ProductoInventarioItem(
     producto: Producto,
     procesando: Boolean,
@@ -363,68 +400,100 @@ private fun ProductoInventarioItem(
     onEliminar: () -> Unit
 ) {
     val colores = MaterialTheme.colorScheme
+    val acento = colorDeEstado(producto)
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(colores.surfaceContainerHighest, RoundedCornerShape(14.dp))
-            .padding(horizontal = 12.dp, vertical = 8.dp),
+            .background(colores.surface, RoundedCornerShape(16.dp))
+            .border(1.dp, colores.outline.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+            .padding(horizontal = 12.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Column(modifier = Modifier.weight(1f).padding(start = 4.dp)) {
+        Box(
+            modifier = Modifier
+                .size(42.dp)
+                .clip(RoundedCornerShape(13.dp))
+                .background(acento.copy(alpha = 0.16f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = producto.nombre.take(1).uppercase(),
+                style = MaterialTheme.typography.titleMedium,
+                color = acento
+            )
+        }
+        Column(modifier = Modifier.weight(1f).padding(start = 12.dp, end = 8.dp)) {
             Text(
                 text = producto.nombre,
                 style = MaterialTheme.typography.titleMedium,
-                color = colores.onSurface
+                color = colores.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
             Text(
                 text = "S/ ${producto.precio} · Stock: ${producto.stock}",
                 style = MaterialTheme.typography.bodyMedium,
                 color = colores.onSurfaceVariant,
-                modifier = Modifier.padding(top = 2.dp)
+                modifier = Modifier.padding(top = 2.dp),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
-        EstadoBadge(producto)
-        if (procesando) {
-            Box(modifier = Modifier.size(40.dp), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(20.dp),
-                    strokeWidth = 2.dp,
-                    color = colores.primary
-                )
-            }
-        } else {
-            IconButton(onClick = onEditar) {
-                Icon(
-                    imageVector = Icons.Filled.Edit,
-                    contentDescription = "Editar ${producto.nombre}",
-                    tint = colores.onSurfaceVariant
-                )
-            }
-            IconButton(onClick = onEliminar) {
-                Icon(
-                    imageVector = Icons.Filled.Delete,
-                    contentDescription = "Eliminar ${producto.nombre}",
-                    tint = colores.error
-                )
+        Column(horizontalAlignment = Alignment.End) {
+            EstadoBadge(producto)
+            if (procesando) {
+                Box(modifier = Modifier.size(40.dp), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        strokeWidth = 2.dp,
+                        color = colores.primary
+                    )
+                }
+            } else {
+                Row(modifier = Modifier.padding(top = 2.dp)) {
+                    IconButton(onClick = onEditar, modifier = Modifier.size(36.dp)) {
+                        Icon(
+                            imageVector = Icons.Filled.Edit,
+                            contentDescription = "Editar ${producto.nombre}",
+                            tint = colores.onSurfaceVariant,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                    IconButton(onClick = onEliminar, modifier = Modifier.size(36.dp)) {
+                        Icon(
+                            imageVector = Icons.Filled.Delete,
+                            contentDescription = "Eliminar ${producto.nombre}",
+                            tint = colores.error,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
             }
         }
     }
 }
 
+private fun colorDeEstado(producto: Producto): Color = when {
+    producto.estaInactivo() -> Color(0xFF69766F)
+    producto.requiereReposicion() -> Amber
+    else -> Emerald
+}
+
 @Composable
 private fun EstadoBadge(producto: Producto) {
-    val colores = MaterialTheme.colorScheme
-    val (texto, color) = when {
-        producto.estaInactivo() -> "Inactivo" to colores.onSurfaceVariant
-        producto.requiereReposicion() -> "Bajo stock" to colores.error
-        else -> "Activo" to colores.primary
+    val texto = when {
+        producto.estaInactivo() -> "Inactivo"
+        producto.requiereReposicion() -> "Bajo stock"
+        else -> "Activo"
     }
+    val color = colorDeEstado(producto)
     Text(
         text = texto,
-        style = MaterialTheme.typography.labelLarge,
-        color = color,
+        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+        color = Color.White,
         modifier = Modifier
-            .background(color.copy(alpha = 0.12f), RoundedCornerShape(999.dp))
+            .padding(end = 4.dp)
+            .background(color, RoundedCornerShape(999.dp))
             .padding(horizontal = 12.dp, vertical = 6.dp)
     )
 }
