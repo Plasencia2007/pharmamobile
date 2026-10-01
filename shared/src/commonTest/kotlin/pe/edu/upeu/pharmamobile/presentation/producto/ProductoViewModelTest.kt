@@ -7,6 +7,8 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import kotlinx.io.IOException
+import pe.edu.upeu.pharmamobile.domain.error.ErrorApi
+import pe.edu.upeu.pharmamobile.domain.error.ErrorApiException
 import pe.edu.upeu.pharmamobile.domain.model.Producto
 import pe.edu.upeu.pharmamobile.domain.repository.ProductoRepository
 import pe.edu.upeu.pharmamobile.domain.usecase.ActualizarProductoUseCase
@@ -19,6 +21,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 /**
@@ -29,7 +32,8 @@ import kotlin.test.assertTrue
 private class FakeProductoRepository(
     productosIniciales: List<Producto> = emptyList(),
     private val fallarAlListar: Boolean = false,
-    private val fallarAlEliminar: Boolean = false
+    private val fallarAlEliminar: Boolean = false,
+    private val errorValidacionAlRegistrar: Map<String, String>? = null
 ) : ProductoRepository {
 
     private val productos = productosIniciales.toMutableList()
@@ -42,6 +46,9 @@ private class FakeProductoRepository(
         private set
 
     override suspend fun registrar(producto: Producto): Producto {
+        if (errorValidacionAlRegistrar != null) {
+            throw ErrorApiException(ErrorApi.Validacion(errorValidacionAlRegistrar))
+        }
         registrarLlamadas++
         val conId = producto.copy(id = (productos.maxOfOrNull { it.id } ?: 0L) + 1)
         productos.add(conId)
@@ -142,6 +149,28 @@ class ProductoViewModelTest {
         val formulario = viewModel.uiState.value.formulario
         assertNotNull(formulario.errorPrecio)
         assertEquals(0, fake.registrarLlamadas)
+    }
+
+    @Test
+    fun errorDeValidacionDelServidorDejaMensajesEnFormularioSinCambiarFase() = runTest {
+        val fake = FakeProductoRepository(
+            productosIniciales = emptyList(),
+            errorValidacionAlRegistrar = mapOf(
+                "precio" to "El precio debe ser mayor o igual a 0.01"
+            )
+        )
+        val viewModel = viewModelCon(fake)
+        dispatcher.scheduler.advanceUntilIdle()
+        val faseAntes = viewModel.uiState.value.fase
+
+        viewModel.registrarProducto(nombre = "Vitamina D3", precio = "0.001", stock = "10")
+        dispatcher.scheduler.advanceUntilIdle()
+
+        val formulario = viewModel.uiState.value.formulario
+        assertEquals("El precio debe ser mayor o igual a 0.01", formulario.errorPrecio)
+        assertNull(formulario.errorNombre)
+        assertEquals(faseAntes, viewModel.uiState.value.fase)
+        assertEquals(ProductoUiState.Operacion.Inactiva, viewModel.uiState.value.operacion)
     }
 
     @Test

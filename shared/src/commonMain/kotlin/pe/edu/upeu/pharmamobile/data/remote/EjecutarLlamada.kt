@@ -20,6 +20,10 @@ suspend fun <T> ejecutarLlamada(bloque: suspend () -> T): Result<T> =
         Result.success(bloque())
     } catch (cancelacion: CancellationException) {
         throw cancelacion
+    } catch (e: ErrorApiException) {
+        // Defensivo: si el bloque ya lanzo un ErrorApi tipificado (por
+        // ejemplo un repositorio falso en pruebas), no se re-traduce.
+        Result.failure(e)
     } catch (e: ClientRequestException) {
         Result.failure(ErrorApiException(traducirCliente(e)))
     } catch (e: ServerResponseException) {
