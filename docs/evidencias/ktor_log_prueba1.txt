@@ -1,0 +1,17 @@
+10-01 19:05:10.930  3825  3825 I System.out: HttpClient: REQUEST: http://10.0.2.2:8082/api/v1/productos?pagina=0&tamanio=20
+10-01 19:05:10.930  3825  3825 I System.out: METHOD: GET
+10-01 19:05:10.930  3825  3825 I System.out: COMMON HEADERS
+10-01 19:05:10.930  3825  3825 I System.out: -> Accept: application/json
+10-01 19:05:10.930  3825  3825 I System.out: -> Content-Type: application/json
+10-01 19:05:10.931  3825  3825 I System.out: CONTENT HEADERS
+10-01 19:05:10.931  3825  3825 I System.out: -> Content-Length: 0
+10-01 19:05:11.656  3825  3825 I System.out: HttpClient: RESPONSE: 200 
+10-01 19:05:11.657  3825  3825 I System.out: METHOD: GET
+10-01 19:05:11.658  3825  3825 I System.out: FROM: http://10.0.2.2:8082/api/v1/productos?pagina=0&tamanio=20
+10-01 19:05:11.658  3825  3825 I System.out: COMMON HEADERS
+10-01 19:05:11.658  3825  3825 I System.out: -> connection: keep-alive
+10-01 19:05:11.658  3825  3825 I System.out: -> content-type: application/json
+10-01 19:05:11.658  3825  3825 I System.out: -> date: Thu, 01 Oct 2026 19:05:12 GMT
+10-01 19:05:11.659  3825  3825 I System.out: -> keep-alive: timeout=60
+10-01 19:05:11.659  3825  3825 I System.out: -> transfer-encoding: chunked
+10-01 19:05:11.659  3825  3825 I System.out: -> vary: Origin; Access-Control-Request-Method; Access-Control-Request-Headers
