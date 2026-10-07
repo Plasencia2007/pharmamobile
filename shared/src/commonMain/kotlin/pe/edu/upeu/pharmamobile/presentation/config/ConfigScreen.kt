@@ -11,10 +11,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import pe.edu.upeu.pharmamobile.platform.InfoDispositivo
 
 @Composable
 fun ConfigScreen(
@@ -71,6 +73,42 @@ fun ConfigScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+
+        AcercaDe(modifier = Modifier.padding(top = 22.dp))
+    }
+}
+
+@Composable
+private fun AcercaDe(modifier: Modifier = Modifier) {
+    val dispositivo = remember { InfoDispositivo() }
+    Card(modifier = modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(18.dp)) {
+            Text(text = "Acerca de", style = MaterialTheme.typography.titleMedium)
+            Text(
+                text = "Información que entrega el propio dispositivo.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 2.dp, bottom = 12.dp)
+            )
+            FilaInfo("Sistema operativo", dispositivo.sistema)
+            HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp))
+            FilaInfo("Versión", dispositivo.version)
+        }
+    }
+}
+
+@Composable
+private fun FilaInfo(etiqueta: String, valor: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = etiqueta,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(text = valor, style = MaterialTheme.typography.titleMedium)
     }
 }
 
