@@ -19,4 +19,4 @@ captures
 node_modules/
 
 # Los PDFs de entrega se generan localmente y no se versionan
-docs/S09_*.pdf
+*.pdf
