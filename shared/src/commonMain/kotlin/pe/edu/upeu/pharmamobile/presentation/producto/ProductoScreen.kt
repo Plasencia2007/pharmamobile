@@ -401,6 +401,7 @@ private fun ProductoInventarioItem(
 ) {
     val colores = MaterialTheme.colorScheme
     val acento = colorDeEstado(producto)
+    val ui = remember(producto) { producto.toUi() }
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -431,7 +432,7 @@ private fun ProductoInventarioItem(
                 overflow = TextOverflow.Ellipsis
             )
             Text(
-                text = "S/ ${producto.precio} · Stock: ${producto.stock}",
+                text = "${ui.precio} · Stock: ${ui.stock}",
                 style = MaterialTheme.typography.bodyMedium,
                 color = colores.onSurfaceVariant,
                 modifier = Modifier.padding(top = 2.dp),
