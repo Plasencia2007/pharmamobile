@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -18,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ShoppingCart
@@ -29,6 +31,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -39,7 +44,14 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.painterResource
 import pe.edu.upeu.pharmamobile.navigation.Screen
-import pe.edu.upeu.pharmamobile.presentation.components.dashedBorder
+import pe.edu.upeu.pharmamobile.presentation.theme.Amber
+import pe.edu.upeu.pharmamobile.presentation.theme.AmberSoft
+import pe.edu.upeu.pharmamobile.presentation.theme.Coral
+import pe.edu.upeu.pharmamobile.presentation.theme.CoralSoft
+import pe.edu.upeu.pharmamobile.presentation.theme.Emerald
+import pe.edu.upeu.pharmamobile.presentation.theme.EmeraldDeep
+import pe.edu.upeu.pharmamobile.presentation.theme.Violet
+import pe.edu.upeu.pharmamobile.presentation.theme.VioletSoft
 import pharmamobile.shared.generated.resources.Res
 import pharmamobile.shared.generated.resources.pharmamobile_logo
 
@@ -52,41 +64,58 @@ fun InicioScreen(onNavigate: (Screen) -> Unit) {
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())
     ) {
-        Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
-            Image(
-                painter = painterResource(Res.drawable.pharmamobile_logo),
-                contentDescription = "Logo PharmaMobile",
-                modifier = Modifier.size(40.dp)
-            )
-            Text(
-                text = fecha.uppercase(),
-                modifier = Modifier.padding(top = 12.dp),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(
-                text = buildAnnotatedString {
-                    append("$saludo,\n")
-                    withStyle(SpanStyle(color = MaterialTheme.colorScheme.secondary)) {
-                        append("Ana")
-                    }
-                },
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(top = 6.dp)
-            )
-            Text(
-                text = "Tu inventario, clientes y pedidos en un mismo lugar.",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(top = 8.dp)
-            )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 16.dp)
+                .clip(RoundedCornerShape(28.dp))
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(EmeraldDeep, Emerald),
+                        start = Offset(0f, 0f),
+                        end = Offset(400f, 400f)
+                    )
+                )
+                .padding(22.dp)
+        ) {
+            Column {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Image(
+                        painter = painterResource(Res.drawable.pharmamobile_logo),
+                        contentDescription = "Logo PharmaMobile",
+                        modifier = Modifier.size(34.dp)
+                    )
+                    Text(
+                        text = fecha.uppercase(),
+                        modifier = Modifier.padding(start = 10.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White.copy(alpha = 0.75f)
+                    )
+                }
+                Text(
+                    text = buildAnnotatedString {
+                        append("$saludo,\n")
+                        withStyle(SpanStyle(color = AmberSoft)) {
+                            append("Ana")
+                        }
+                    },
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = Color.White,
+                    modifier = Modifier.padding(top = 14.dp)
+                )
+                Text(
+                    text = "Tu inventario, clientes y pedidos en un mismo lugar.",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = Color.White.copy(alpha = 0.82f),
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
         }
 
         Text(
-            text = "ACCESOS DIRECTOS",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            text = "Accesos directos",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)
         )
 
@@ -99,7 +128,8 @@ fun InicioScreen(onNavigate: (Screen) -> Unit) {
                     titulo = "Productos",
                     descripcion = "Registro e inventario",
                     icono = Icons.Filled.ShoppingCart,
-                    variante = TileVariante.PRIMARIO,
+                    acento = Emerald,
+                    fondoSuave = MaterialTheme.colorScheme.primaryContainer,
                     onClick = { onNavigate(Screen.Productos) },
                     modifier = Modifier.weight(1f)
                 )
@@ -107,7 +137,8 @@ fun InicioScreen(onNavigate: (Screen) -> Unit) {
                     titulo = "Clientes",
                     descripcion = "Administra tu cartera",
                     icono = Icons.Filled.Person,
-                    variante = TileVariante.NORMAL,
+                    acento = Violet,
+                    fondoSuave = VioletSoft,
                     onClick = { onNavigate(Screen.Clientes) },
                     modifier = Modifier.weight(1f)
                 )
@@ -117,7 +148,8 @@ fun InicioScreen(onNavigate: (Screen) -> Unit) {
                     titulo = "Pedidos",
                     descripcion = "Controla despachos",
                     icono = Icons.AutoMirrored.Filled.List,
-                    variante = TileVariante.NORMAL,
+                    acento = Amber,
+                    fondoSuave = AmberSoft,
                     onClick = { onNavigate(Screen.Pedidos) },
                     modifier = Modifier.weight(1f)
                 )
@@ -125,7 +157,8 @@ fun InicioScreen(onNavigate: (Screen) -> Unit) {
                     titulo = "Nuevo pedido",
                     descripcion = "Empieza en 30 s",
                     icono = Icons.Filled.Add,
-                    variante = TileVariante.FANTASMA,
+                    acento = Coral,
+                    fondoSuave = CoralSoft,
                     onClick = { onNavigate(Screen.Pedidos) },
                     modifier = Modifier.weight(1f)
                 )
@@ -136,66 +169,55 @@ fun InicioScreen(onNavigate: (Screen) -> Unit) {
     }
 }
 
-private enum class TileVariante { PRIMARIO, NORMAL, FANTASMA }
-
 @Composable
 private fun Tile(
     titulo: String,
     descripcion: String,
     icono: ImageVector,
-    variante: TileVariante,
+    acento: Color,
+    fondoSuave: Color,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val colores = MaterialTheme.colorScheme
-    val fondo = when (variante) {
-        TileVariante.PRIMARIO -> colores.primary
-        TileVariante.NORMAL -> colores.secondaryContainer
-        TileVariante.FANTASMA -> colores.background
-    }
-    val colorTexto = if (variante == TileVariante.PRIMARIO) colores.onPrimary else colores.onSurface
-    val colorDescripcion = if (variante == TileVariante.PRIMARIO) {
-        colores.onPrimary.copy(alpha = 0.7f)
-    } else {
-        colores.onSurfaceVariant
-    }
-    val colorIcono = if (variante == TileVariante.PRIMARIO) colores.onPrimary else colores.primary
-
-    var base = modifier
-        .height(128.dp)
-        .clip(RoundedCornerShape(20.dp))
-        .background(fondo)
-    base = if (variante == TileVariante.FANTASMA) {
-        base.dashedBorder(color = colores.outline, cornerRadius = 20.dp)
-    } else {
-        base
-    }
 
     Column(
-        modifier = base
+        modifier = modifier
+            .height(132.dp)
+            .clip(RoundedCornerShape(20.dp))
+            .background(colores.surface)
+            .background(fondoSuave.copy(alpha = 0.55f))
             .clickable(onClick = onClick)
-            .padding(18.dp),
+            .padding(16.dp),
         verticalArrangement = Arrangement.SpaceBetween
     ) {
-        if (variante == TileVariante.FANTASMA) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Box(
                 modifier = Modifier
-                    .size(34.dp)
+                    .size(38.dp)
                     .clip(CircleShape)
-                    .background(colores.primaryContainer),
+                    .background(acento),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(icono, contentDescription = null, tint = colores.primary, modifier = Modifier.size(18.dp))
+                Icon(icono, contentDescription = null, tint = Color.White, modifier = Modifier.size(19.dp))
             }
-        } else {
-            Icon(icono, contentDescription = null, tint = colorIcono, modifier = Modifier.size(24.dp))
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                contentDescription = null,
+                tint = acento.copy(alpha = 0.55f),
+                modifier = Modifier.size(16.dp)
+            )
         }
         Column {
-            Text(titulo, style = MaterialTheme.typography.titleMedium, color = colorTexto)
+            Text(titulo, style = MaterialTheme.typography.titleMedium, color = colores.onSurface)
             Text(
                 descripcion,
                 style = MaterialTheme.typography.bodyMedium,
-                color = colorDescripcion,
+                color = colores.onSurfaceVariant,
                 modifier = Modifier.padding(top = 2.dp)
             )
         }

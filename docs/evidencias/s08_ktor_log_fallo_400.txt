@@ -1,0 +1,16 @@
+10-01 19:39:54.489  5414  5414 I System.out: HttpClient: REQUEST: http://10.0.2.2:8082/api/v1/productos
+10-01 19:39:54.490  5414  5414 I System.out: METHOD: POST
+10-01 19:39:54.490  5414  5414 I System.out: COMMON HEADERS
+10-01 19:39:54.490  5414  5414 I System.out: -> Accept: application/json
+10-01 19:39:54.490  5414  5414 I System.out: CONTENT HEADERS
+10-01 19:39:54.490  5414  5414 I System.out: -> Content-Length: 70
+10-01 19:39:54.490  5414  5414 I System.out: -> Content-Type: application/json
+10-01 19:39:55.565  5414  5414 I System.out: HttpClient: RESPONSE: 400 
+10-01 19:39:55.565  5414  5414 I System.out: METHOD: POST
+10-01 19:39:55.565  5414  5414 I System.out: FROM: http://10.0.2.2:8082/api/v1/productos
+10-01 19:39:55.565  5414  5414 I System.out: COMMON HEADERS
+10-01 19:39:55.565  5414  5414 I System.out: -> connection: close
+10-01 19:39:55.565  5414  5414 I System.out: -> content-type: application/json
+10-01 19:39:55.565  5414  5414 I System.out: -> date: Thu, 01 Oct 2026 19:39:56 GMT
+10-01 19:39:55.565  5414  5414 I System.out: -> transfer-encoding: chunked
+10-01 19:39:55.565  5414  5414 I System.out: -> vary: Origin; Access-Control-Request-Method; Access-Control-Request-Headers

@@ -1,0 +1,8 @@
+10-01 20:08:04.578  8699  8699 I System.out: HttpClient: REQUEST: http://10.0.2.2:8082/api/v1/productos/10
+10-01 20:08:04.578  8699  8699 I System.out: METHOD: DELETE
+10-01 20:08:04.578  8699  8699 I System.out: COMMON HEADERS
+10-01 20:08:04.578  8699  8699 I System.out: -> Accept: application/json
+10-01 20:08:04.578  8699  8699 I System.out: -> Content-Type: application/json
+10-01 20:08:04.578  8699  8699 I System.out: CONTENT HEADERS
+10-01 20:08:04.578  8699  8699 I System.out: -> Content-Length: 0
+10-01 20:08:04.663  8699  8699 I System.out: HttpClient: REQUEST http://10.0.2.2:8082/api/v1/productos/10 failed with exception: java.net.ConnectException: Failed to connect to /10.0.2.2:8082

@@ -4,16 +4,21 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 
 private val LightColorScheme = lightColorScheme(
-    primary = Pine,
-    onPrimary = Paper,
+    primary = Emerald,
+    onPrimary = Color.White,
     primaryContainer = Mint,
-    onPrimaryContainer = Pine,
-    secondary = Pine2,
-    onSecondary = Paper,
-    secondaryContainer = Sand,
-    onSecondaryContainer = Ink,
+    onPrimaryContainer = EmeraldDeep,
+    secondary = Violet,
+    onSecondary = Color.White,
+    secondaryContainer = VioletSoft,
+    onSecondaryContainer = Violet,
+    tertiary = Coral,
+    onTertiary = Color.White,
+    tertiaryContainer = CoralSoft,
+    onTertiaryContainer = Coral,
     background = Paper,
     onBackground = Ink,
     surface = Paper,
@@ -27,14 +32,18 @@ private val LightColorScheme = lightColorScheme(
 )
 
 private val DarkColorScheme = darkColorScheme(
-    primary = PineDark,
+    primary = EmeraldDark,
     onPrimary = OnPrimaryDark,
-    primaryContainer = PineContainerDark,
+    primaryContainer = EmeraldContainerDark,
     onPrimaryContainer = Mint,
-    secondary = PineDark,
+    secondary = VioletDark,
     onSecondary = OnPrimaryDark,
-    secondaryContainer = SandDark,
-    onSecondaryContainer = InkDark,
+    secondaryContainer = VioletContainerDark,
+    onSecondaryContainer = VioletSoft,
+    tertiary = CoralDark,
+    onTertiary = OnPrimaryDark,
+    tertiaryContainer = CoralDark.copy(alpha = 0.22f),
+    onTertiaryContainer = CoralDark,
     background = PaperDark,
     onBackground = InkDark,
     surface = PaperDark,

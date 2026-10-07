@@ -1,0 +1,8 @@
+10-01 20:05:56.129  8449  8449 I System.out: HttpClient: REQUEST: http://10.0.2.2:8082/api/v1/productos?pagina=0&tamanio=20
+10-01 20:05:56.129  8449  8449 I System.out: METHOD: GET
+10-01 20:05:56.130  8449  8449 I System.out: COMMON HEADERS
+10-01 20:05:56.130  8449  8449 I System.out: -> Accept: application/json
+10-01 20:05:56.130  8449  8449 I System.out: -> Content-Type: application/json
+10-01 20:05:56.130  8449  8449 I System.out: CONTENT HEADERS
+10-01 20:05:56.130  8449  8449 I System.out: -> Content-Length: 0
+10-01 20:05:58.409  8449  8449 I System.out: HttpClient: REQUEST http://10.0.2.2:8082/api/v1/productos?pagina=0&tamanio=20 failed with exception: java.net.ConnectException: Failed to connect to /10.0.2.2:8082
