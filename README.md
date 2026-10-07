@@ -50,6 +50,36 @@ como `single` en Koin.
 `DELETE` es un borrado lógico (`estado = false`): repetirlo sobre un
 producto ya inactivo responde 409, no 204.
 
+### Capacidades nativas (expect/actual)
+
+Dos capacidades que dependen del sistema operativo, resueltas con dos
+mecanismos distintos a propósito:
+
+| Capacidad | Mecanismo | Por qué |
+|---|---|---|
+| Formato de moneda (`formatearSoles`) | `expect`/`actual` | Función pura sin dependencias: el compilador exige el `actual` de cada plataforma |
+| Compartir (`Compartidor`) | Interfaz en `domain` + implementación inyectada por Koin | Necesita un objeto de plataforma (`Context` / controlador de vista) y se puede sustituir en pruebas |
+
+| Archivo | Source set | Qué hace |
+|---|---|---|
+| `platform/Formato.kt` | `commonMain` | `expect fun formatearSoles(valor: Double): String` |
+| `platform/Formato.android.kt` | `androidMain` | `NumberFormat` con `Locale("es", "PE")` |
+| `platform/Formato.ios.kt` | `iosMain` | `NSNumberFormatter` con `NSLocale("es_PE")` |
+| `domain/platform/Compartidor.kt` | `commonMain` | Interfaz `Compartidor.compartir(texto)` |
+| `platform/CompartidorAndroid.kt` | `androidMain` | `Intent.ACTION_SEND` + `createChooser` (`FLAG_ACTIVITY_NEW_TASK`) |
+| `platform/CompartidorIos.kt` | `iosMain` | `UIActivityViewController` desde el `rootViewController` activo |
+| `di/PlatformModule.android.kt` / `.ios.kt` | por plataforma | Registran `HttpClientEngine` y `Compartidor` |
+
+El texto a compartir se arma en código común
+(`domain/usecase/TextoParaCompartir.kt`) y el formato de moneda se aplica
+en la capa de presentación (`ProductoUi`, `Producto.toUi()`), nunca en el
+dominio ni dentro del composable. `presentation` y `domain` no importan
+`android.` ni `platform.UIKit`/`platform.Foundation`.
+
+El `actual` de iOS **compila** (`./gradlew :shared:compileKotlinIosSimulatorArm64`)
+pero no se ejecutó: el desarrollo se hizo en Windows y ejecutar el
+simulador exige macOS con Xcode.
+
 ### Manejo de errores
 
 `data/remote/EjecutarLlamada.kt` es el único punto que traduce las
