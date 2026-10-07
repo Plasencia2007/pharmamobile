@@ -13,7 +13,9 @@ import pe.edu.upeu.pharmamobile.domain.repository.ProductoRepository
 import pe.edu.upeu.pharmamobile.domain.usecase.ActualizarProductoUseCase
 import pe.edu.upeu.pharmamobile.domain.usecase.EliminarProductoUseCase
 import pe.edu.upeu.pharmamobile.domain.usecase.ListarProductosUseCase
+import pe.edu.upeu.pharmamobile.domain.usecase.ObtenerProductoUseCase
 import pe.edu.upeu.pharmamobile.domain.usecase.RegistrarProductoUseCase
+import pe.edu.upeu.pharmamobile.presentation.detalle.DetalleProductoViewModel
 import pe.edu.upeu.pharmamobile.presentation.producto.ProductoViewModel
 
 /**
@@ -32,6 +34,7 @@ val dataModule = module {
 
 val domainModule = module {
     factory { ListarProductosUseCase(get()) }
+    factory { ObtenerProductoUseCase(get()) }
     factory { RegistrarProductoUseCase(get()) }
     factory { ActualizarProductoUseCase(get()) }
     factory { EliminarProductoUseCase(get()) }
@@ -39,6 +42,7 @@ val domainModule = module {
 
 val presentationModule = module {
     viewModel { ProductoViewModel(get(), get(), get(), get()) }
+    viewModel { (productoId: Long) -> DetalleProductoViewModel(productoId, get(), get()) }
 }
 
 fun initKoin(config: KoinAppDeclaration? = null) {

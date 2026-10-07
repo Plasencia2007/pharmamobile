@@ -51,6 +51,7 @@ import pe.edu.upeu.pharmamobile.presentation.components.ErrorSummary
 import pe.edu.upeu.pharmamobile.presentation.components.FormButton
 import pe.edu.upeu.pharmamobile.presentation.components.PharmaChip
 import pe.edu.upeu.pharmamobile.presentation.components.PharmaField
+import pe.edu.upeu.pharmamobile.presentation.detalle.DetalleProductoSheet
 import pe.edu.upeu.pharmamobile.presentation.theme.Amber
 import pe.edu.upeu.pharmamobile.presentation.theme.Coral
 import pe.edu.upeu.pharmamobile.presentation.theme.Emerald
@@ -76,6 +77,7 @@ fun ProductoScreen(
     var mostrarFormulario by remember { mutableStateOf(false) }
     var productoEditando by remember { mutableStateOf<Producto?>(null) }
     var productoAEliminar by remember { mutableStateOf<Producto?>(null) }
+    var productoDetalleId by remember { mutableStateOf<Long?>(null) }
 
     LaunchedEffect(uiState.formulario.mensajeExito) {
         uiState.formulario.mensajeExito?.let { mensaje ->
@@ -191,6 +193,7 @@ fun ProductoScreen(
                             ProductoInventarioItem(
                                 producto = producto,
                                 procesando = procesando,
+                                onVer = { productoDetalleId = producto.id },
                                 onEditar = {
                                     productoEditando = producto
                                     mostrarFormulario = true
@@ -223,6 +226,10 @@ fun ProductoScreen(
                 }
             )
         }
+    }
+
+    productoDetalleId?.let { id ->
+        DetalleProductoSheet(productoId = id, onCerrar = { productoDetalleId = null })
     }
 
     productoAEliminar?.let { producto ->
@@ -396,6 +403,7 @@ private fun colorDePestana(indice: Int): Color = when (indice) {
 private fun ProductoInventarioItem(
     producto: Producto,
     procesando: Boolean,
+    onVer: () -> Unit,
     onEditar: () -> Unit,
     onEliminar: () -> Unit
 ) {
@@ -407,6 +415,8 @@ private fun ProductoInventarioItem(
             .fillMaxWidth()
             .background(colores.surface, RoundedCornerShape(16.dp))
             .border(1.dp, colores.outline.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(16.dp))
+            .clickable(onClick = onVer)
             .padding(horizontal = 12.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -474,14 +484,14 @@ private fun ProductoInventarioItem(
     }
 }
 
-private fun colorDeEstado(producto: Producto): Color = when {
+internal fun colorDeEstado(producto: Producto): Color = when {
     producto.estaInactivo() -> Color(0xFF69766F)
     producto.requiereReposicion() -> Amber
     else -> Emerald
 }
 
 @Composable
-private fun EstadoBadge(producto: Producto) {
+internal fun EstadoBadge(producto: Producto) {
     val texto = when {
         producto.estaInactivo() -> "Inactivo"
         producto.requiereReposicion() -> "Bajo stock"
