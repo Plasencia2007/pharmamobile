@@ -17,3 +17,6 @@ captures
 !*.xcworkspace/contents.xcworkspacedata
 **/xcshareddata/WorkspaceSettings.xcsettings
 node_modules/
+
+# Los PDFs de entrega se generan localmente y no se versionan
+docs/S09_*.pdf
