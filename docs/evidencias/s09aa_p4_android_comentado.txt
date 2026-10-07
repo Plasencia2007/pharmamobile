@@ -1,0 +1,6 @@
+> Task :shared:compileKotlinIosSimulatorArm64 UP-TO-DATE
+> Task :shared:compileAndroidMain
+e: shared/src/commonMain/kotlin/pe/edu/upeu/pharmamobile/platform/Formato.kt:3:1 Expected formatearSoles has no actual declaration in module <commonMain> for JVM
+> Task :shared:compileAndroidMain FAILED
+Execution failed for task ':shared:compileAndroidMain' (registered by plugin 'com.android.internal.kotlin.multiplatform.library').
+BUILD FAILED in 7s

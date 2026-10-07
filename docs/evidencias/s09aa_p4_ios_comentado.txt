@@ -1,0 +1,6 @@
+> Task :shared:compileAndroidMain UP-TO-DATE
+> Task :shared:compileKotlinIosSimulatorArm64
+e: shared/src/commonMain/kotlin/pe/edu/upeu/pharmamobile/platform/Formato.kt:3:1 Expected formatearSoles has no actual declaration in module <commonMain> for Native
+> Task :shared:compileKotlinIosSimulatorArm64 FAILED
+Execution failed for task ':shared:compileKotlinIosSimulatorArm64' (registered in build file 'shared\build.gradle.kts').
+BUILD FAILED in 8s
