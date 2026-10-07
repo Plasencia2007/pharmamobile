@@ -80,6 +80,24 @@ El `actual` de iOS **compila** (`./gradlew :shared:compileKotlinIosSimulatorArm6
 pero no se ejecutó: el desarrollo se hizo en Windows y ejecutar el
 simulador exige macOS con Xcode.
 
+### Código específico de plataforma
+
+Inventario de todo lo que depende del sistema operativo. Las rutas son
+relativas a `shared/src/` y el paquete es `pe/edu/upeu/pharmamobile/`.
+
+| Capacidad | Mecanismo y firma | `actual` / implementación en Android | `actual` / implementación en iOS |
+|---|---|---|---|
+| Formato de moneda | `expect fun formatearSoles(valor: Double): String` (`commonMain/.../platform/Formato.kt`) | `androidMain/.../platform/Formato.android.kt` · `NumberFormat` con `Locale("es", "PE")` | `iosMain/.../platform/Formato.ios.kt` · `NSNumberFormatter` con `NSLocale("es_PE")` |
+| Información del dispositivo | `expect class InfoDispositivo()` con `sistema` y `version` (`commonMain/.../platform/InfoDispositivo.kt`) | `androidMain/.../platform/InfoDispositivo.android.kt` · `Build.VERSION.RELEASE` | `iosMain/.../platform/InfoDispositivo.ios.kt` · `UIDevice.currentDevice.systemName` / `systemVersion` |
+| Compartir producto | **No es `expect`**: `interface Compartidor` (`commonMain/.../domain/platform/Compartidor.kt`) | `androidMain/.../platform/CompartidorAndroid.kt` · `Intent.ACTION_SEND` + `createChooser` | `iosMain/.../platform/CompartidorIos.kt` · `UIActivityViewController` |
+| Módulo de inyección | `expect val platformModule: Module` (`commonMain/.../di/PlatformModule.kt`) | `androidMain/.../di/PlatformModule.android.kt` · `module` con `androidContext()`, motor OkHttp | `iosMain/.../di/PlatformModule.ios.kt` · `module` sin contexto, motor Darwin |
+| URL base de la API | `expect val urlBaseApi: String` (`commonMain/.../data/remote/HttpClientFactory.kt`) | `androidMain/.../data/remote/HttpClientFactory.android.kt` · `10.0.2.2` | `iosMain/.../data/remote/HttpClientFactory.ios.kt` · `localhost` |
+| Nombre de la plataforma | `expect fun getPlatform(): Platform` (`commonMain/.../Platform.kt`, de la plantilla KMP) | `androidMain/.../Platform.android.kt` · `Build.VERSION.SDK_INT` | `iosMain/.../Platform.ios.kt` · `UIDevice` |
+
+`commonMain` no contiene ninguna importación `android.`, `platform.` (frameworks de Apple) ni `java.`.
+El informe comparativo con las diferencias observadas entre plataformas está en
+[`docs/informe-diferencias-por-plataforma.md`](docs/informe-diferencias-por-plataforma.md).
+
 ### Manejo de errores
 
 `data/remote/EjecutarLlamada.kt` es el único punto que traduce las
