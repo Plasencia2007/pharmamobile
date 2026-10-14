@@ -1,0 +1,35 @@
+# Paso 1 - Seguridad de PharmaSoft comprobada antes de escribir Kotlin (14-10-2026)
+# Base: http://localhost:8082/api/v1 (el 8080 y 8081 estan ocupados en esta maquina)
+
+## 1. GET /productos sin token
+{"timestamp":"2026-10-14T13:50:36.793159700","status":401,"error":"Unauthorized","message":"Debe iniciar sesión para acceder a este recurso","path":"/api/v1/productos","validationErrors":null}
+HTTP 401
+
+## 2. POST /auth/login admin (token recortado)
+{
+ "token": "eyJhbGciOiJIUzUxMiJ9.eyJz...",
+ "tipo": "Bearer",
+ "expiraEnSegundos": 3600,
+ "username": "admin",
+ "nombreCompleto": "Carlos Ramirez Torres",
+ "roles": [
+  "ADMIN"
+ ],
+ "permisos": [
+  "CATALOGO_ESCRIBIR",
+  "CATALOGO_LEER",
+  "CLIENTES_ESCRIBIR",
+  "CLIENTES_LEER",
+  "REPORTES_VER",
+  "USUARIOS_ADMINISTRAR",
+  "VENTAS_LEER",
+  "VENTAS_REGISTRAR"
+ ]
+}
+
+## 3. GET /productos con token admin
+HTTP 200
+
+## 4. GET /clientes con token almacen (sin permiso)
+{"timestamp":"2026-10-14T13:50:37.134411100","status":403,"error":"Forbidden","message":"No tiene permisos para realizar esta operación","path":"/api/v1/clientes","validationErrors":null}
+HTTP 403
