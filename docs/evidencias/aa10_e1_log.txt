@@ -1,0 +1,5 @@
+10-14 20:08:19.158  3669  3669 I System.out: HttpClient: REQUEST: http://10.0.2.2:8082/api/v1/productos?pagina=0&tamanio=20
+10-14 20:08:19.158  3669  3669 I System.out: METHOD: GET
+10-14 20:08:19.158  3669  3669 I System.out: -> Authorization: ***
+10-14 20:08:19.285  3669  3669 I System.out: HttpClient: RESPONSE: 200 
+10-14 20:08:19.285  3669  3669 I System.out: METHOD: GET

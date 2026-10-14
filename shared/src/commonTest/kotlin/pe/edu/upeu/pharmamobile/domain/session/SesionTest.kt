@@ -114,6 +114,14 @@ class SesionTest {
     }
 
     @Test
+    fun `expirar sin sesion y sin restauracion en curso no deja aviso`() = runTest {
+        val gestor = GestorSesion(AuthFalso())
+        gestor.restaurar()
+        gestor.expirar()
+        assertNull(gestor.aviso.value)
+    }
+
+    @Test
     fun `un login nuevo descarta el aviso de sesion expirada`() = runTest {
         val gestor = GestorSesion(AuthFalso())
         gestor.expirar()

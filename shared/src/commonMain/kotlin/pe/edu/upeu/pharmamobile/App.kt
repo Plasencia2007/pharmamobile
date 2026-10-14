@@ -87,7 +87,9 @@ fun App() = KoinContext {
                     estado = sesionUi,
                     alCambiarUsuario = sesionViewModel::alCambiarUsuario,
                     alCambiarClave = sesionViewModel::alCambiarClave,
-                    alIniciar = sesionViewModel::iniciarSesion
+                    alIniciar = sesionViewModel::iniciarSesion,
+                    depuracion = depuracion,
+                    alProbarSinToken = { sesionViewModel.probarAcceso("productos") }
                 )
             }
             return@PharmaMobileTheme

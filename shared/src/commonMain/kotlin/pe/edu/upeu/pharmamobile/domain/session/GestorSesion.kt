@@ -47,6 +47,8 @@ class GestorSesion(private val auth: AuthRepository) {
 
     /** 401 con sesión activa: borra el token, limpia el estado y deja un aviso para el login. */
     suspend fun expirar() {
+        // Sin sesión y sin restauración en curso no hay nada que expirar: no se deja un aviso falso en el login.
+        if (_sesion.value == null && !_restaurando.value) return
         auth.cerrarSesion()
         _sesion.value = null
         _aviso.value = AVISO_SESION_EXPIRADA

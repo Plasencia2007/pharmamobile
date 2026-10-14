@@ -1,0 +1,10 @@
+## DESPUES de cerrar sesion  (15:08:58)
+-rw-rw---- 1 u0_a209 u0_a209 1136 2026-10-14 20:08 sesion_segura.xml
+entradas <string> en sesion_segura.xml: 2
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<map>
+    <string name="__androidx_security_crypto_encrypted_prefs_key_keyset__">12a701ed9f21feaa34c5c8afcb05041494c9df7830bc3
+    <string name="__androidx_security_crypto_encrypted_prefs_value_keyset__">12880164f1d211a7cd835dc3c515e5be5c4837f5279
+</map>
+archivos de la app que contienen 'eyJ' (inicio de un JWT): 0
+

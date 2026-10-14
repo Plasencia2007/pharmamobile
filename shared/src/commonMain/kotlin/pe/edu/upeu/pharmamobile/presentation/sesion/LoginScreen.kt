@@ -21,6 +21,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -42,7 +43,9 @@ fun LoginScreen(
     estado: SesionUiState,
     alCambiarUsuario: (String) -> Unit,
     alCambiarClave: (String) -> Unit,
-    alIniciar: () -> Unit
+    alIniciar: () -> Unit,
+    depuracion: Boolean = false,
+    alProbarSinToken: () -> Unit = {}
 ) {
     Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         Column(
@@ -142,6 +145,29 @@ fun LoginScreen(
                     )
                 } else {
                     Text("Ingresar", style = MaterialTheme.typography.labelLarge)
+                }
+            }
+
+            if (depuracion) {
+                OutlinedButton(
+                    onClick = alProbarSinToken,
+                    modifier = Modifier.padding(top = 14.dp).fillMaxWidth()
+                ) {
+                    Text("Depuración: lanzar petición sin token")
+                }
+                when (val d = estado.diagnostico) {
+                    is SesionUiState.Diagnostico.Denegado -> Text(
+                        text = d.mensaje,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(top = 10.dp)
+                    )
+                    is SesionUiState.Diagnostico.Permitido -> Text(
+                        text = "El servidor respondió 200.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(top = 10.dp)
+                    )
+                    else -> Unit
                 }
             }
         }

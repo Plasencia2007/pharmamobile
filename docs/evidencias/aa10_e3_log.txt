@@ -1,0 +1,4 @@
+10-14 20:09:52.662  3669  3669 I System.out: HttpClient: REQUEST: http://10.0.2.2:8082/api/v1/clientes
+10-14 20:09:52.662  3669  3669 I System.out: -> Authorization: ***
+10-14 20:09:52.703  3669  3669 I System.out: HttpClient: RESPONSE: 401 
+10-14 20:09:52.708  3669  3669 I System.out: SESION> GET /api/v1/clientes -> 401 "El token no es válido"
