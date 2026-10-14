@@ -1,0 +1,12 @@
+# Escenario 5: usuario deshabilitado (ejecucion real, 14-10-2026)
+Token de 'almacen' emitido mientras estaba habilitado; luego se deshabilita el usuario en la base (estado=false).
+== antes de deshabilitar: GET /auth/me ==
+HTTP 200
+== usuario deshabilitado, mismo token: GET /auth/me ==
+{"timestamp":"2026-10-14T14:33:12.896994","status":401,"error":"Unauthorized","message":"El usuario está deshabilitado","path":"/api/v1/auth/me","validationErrors":null}
+HTTP 401
+== usuario deshabilitado: nuevo login ==
+{"timestamp":"2026-10-14T14:33:13.0450178","status":401,"error":"Unauthorized","message":"Usuario o contraseña incorrectos","path":"/api/v1/auth/login","validationErrors":null}
+HTTP 401
+== usuario rehabilitado (restaurado): nuevo login ==
+HTTP 200

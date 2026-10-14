@@ -1,0 +1,5 @@
+10-14 19:32:27.800  7328  7328 I System.out: HttpClient: REQUEST: http://10.0.2.2:8082/api/v1/clientes
+10-14 19:32:27.801  7328  7328 I System.out: METHOD: GET
+10-14 19:32:27.801  7328  7328 I System.out: -> Authorization: ***
+10-14 19:32:28.627  7328  7328 I System.out: HttpClient: RESPONSE: 401 
+10-14 19:32:28.627  7328  7328 I System.out: METHOD: GET

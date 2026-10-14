@@ -1,0 +1,10 @@
+# Bitacora de escenarios de token (ejecucion real contra PharmaSoft, 14-10-2026)
+
+1. Token valido
+   GET /auth/me -> 200  usuario=vendedor
+2. Token expirado (firmado con la clave real, exp en el pasado)
+   GET /auth/me -> 401  El token ha expirado. Inicie sesión nuevamente
+3. Token manipulado (sub cambiado a admin, firma original)
+   GET /auth/me -> 401  El token no es válido
+4. Sin token
+   GET /auth/me -> 401  Debe iniciar sesión para acceder a este recurso

@@ -1,0 +1,24 @@
+# Matriz de verificacion por rol (ejecucion real contra PharmaSoft, 14-10-2026)
+# POST con cuerpo {}: con permiso responde 400 (validacion), sin permiso 403; no se crean datos.
+
+Operacion             admin   vendedor  almacen 
+Listar productos      200     200       200     
+Registrar producto    400     403       400     
+Listar clientes       200     200       403     
+Registrar venta       400     400       403     
+Ver reportes          500     403       403     
+Consultar /auth/me    200     200       200     
+
+Detalle de los 403 (mensaje que devuelve el servidor):
+  vendedor POST /productos -> 403 "No tiene permisos para realizar esta operación"
+  almacen GET /clientes -> 403 "No tiene permisos para realizar esta operación"
+  almacen POST /ventas -> 403 "No tiene permisos para realizar esta operación"
+  vendedor GET /reportes/ventas-por-categoria -> 403 "No tiene permisos para realizar esta operación"
+  almacen GET /reportes/ventas-por-categoria -> 403 "No tiene permisos para realizar esta operación"
+
+Nota sobre "Ver reportes" con admin = 500: no es un fallo de la app ni de la seguridad
+(el servidor dejo pasar al admin). Es una incompatibilidad de mi port local de Oracle a
+PostgreSQL con el JPQL del profesor: PostgreSQL no puede inferir el tipo de los parametros
+"(? is null or v.fecha >= ?)" cuando llegan nulos ("could not determine data type of
+parameter $1"). Con la base Oracle del curso se espera 200. Los 403 de vendedor y almacen
+si acreditan la matriz esperada.
