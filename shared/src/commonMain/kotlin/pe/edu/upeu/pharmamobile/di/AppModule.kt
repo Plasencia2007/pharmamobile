@@ -4,6 +4,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.HttpClientEngine
 import org.koin.core.context.startKoin
 import org.koin.core.module.dsl.viewModel
+import org.koin.core.qualifier.named
 import org.koin.dsl.KoinAppDeclaration
 import org.koin.dsl.module
 import pe.edu.upeu.pharmamobile.data.remote.ProductoApi
@@ -27,7 +28,13 @@ import pe.edu.upeu.pharmamobile.presentation.producto.ProductoViewModel
 private const val CATEGORIA_POR_DEFECTO = 1L
 
 val dataModule = module {
-    single { crearHttpClient(get<HttpClientEngine>()) }
+    single {
+        crearHttpClient(
+            engine = get<HttpClientEngine>(),
+            almacen = get(),
+            esDepuracion = get(named(NOMBRE_DEPURACION))
+        )
+    }
     single { ProductoApi(get<HttpClient>()) }
     single<ProductoRepository> { ProductoRepositorioRest(get(), CATEGORIA_POR_DEFECTO) }
 }
