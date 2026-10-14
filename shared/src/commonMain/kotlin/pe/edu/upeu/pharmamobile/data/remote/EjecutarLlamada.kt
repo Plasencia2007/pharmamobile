@@ -73,7 +73,7 @@ fun mapearErrorSesion(estado: HttpStatusCode, enLogin: Boolean): ErrorSesion = w
 
 fun mensajeDeSesion(error: ErrorSesion): String = when (error) {
     ErrorSesion.CredencialesInvalidas -> "Usuario o contraseña incorrectos."
-    ErrorSesion.SesionExpirada -> "Tu sesión expiró. Inicia sesión nuevamente."
+    ErrorSesion.SesionExpirada -> "Tu sesión expiró o ya no es válida. Inicia sesión nuevamente."
     ErrorSesion.SinPermiso -> "No tienes permiso para realizar esta operación."
     ErrorSesion.SinConexion -> "No hay conexión con el servidor."
 }

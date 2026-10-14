@@ -68,6 +68,14 @@ class AuthRepositorioRest(
         }
     }
 
+    override suspend fun alterarTokenGuardado(): Boolean {
+        val token = almacen.leerToken() ?: return false
+        val ultimo = token.last()
+        almacen.guardarToken(token.dropLast(1) + if (ultimo == 'A') 'B' else 'A')
+        olvidarTokenEnCache()
+        return true
+    }
+
     private fun olvidarTokenEnCache() {
         cliente.authProvider<BearerAuthProvider>()?.clearToken()
     }

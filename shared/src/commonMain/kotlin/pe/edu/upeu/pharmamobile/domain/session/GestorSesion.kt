@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import pe.edu.upeu.pharmamobile.domain.model.Sesion
 import pe.edu.upeu.pharmamobile.domain.repository.AuthRepository
 
-const val AVISO_SESION_EXPIRADA = "Tu sesión expiró. Inicia sesión nuevamente."
+const val AVISO_SESION_EXPIRADA = "Tu sesión expiró o ya no es válida. Inicia sesión nuevamente."
 
 /**
  * Única fuente de verdad de "¿hay sesión?". La interfaz solo observa
@@ -21,6 +21,10 @@ class GestorSesion(private val auth: AuthRepository) {
     private val _restaurando = MutableStateFlow(true)
     val restaurando: StateFlow<Boolean> = _restaurando.asStateFlow()
 
+    /** Cambia con cada inicio de sesión: las pantallas lo usan para no reutilizar datos de la sesión anterior. */
+    private val _generacion = MutableStateFlow(0)
+    val generacion: StateFlow<Int> = _generacion.asStateFlow()
+
     private val _aviso = MutableStateFlow<String?>(null)
     val aviso: StateFlow<String?> = _aviso.asStateFlow()
 
@@ -32,6 +36,7 @@ class GestorSesion(private val auth: AuthRepository) {
 
     fun iniciar(sesion: Sesion) {
         _aviso.value = null
+        _generacion.value += 1
         _sesion.value = sesion
     }
 

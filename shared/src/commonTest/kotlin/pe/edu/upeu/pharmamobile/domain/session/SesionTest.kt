@@ -48,6 +48,8 @@ private class AuthFalso(
     }
 
     override suspend fun probarAcceso(recurso: String) = Unit
+
+    override suspend fun alterarTokenGuardado() = false
 }
 
 class SesionTest {

@@ -10,4 +10,7 @@ interface AuthRepository {
 
     /** Consulta un recurso protegido solo para observar la respuesta del servidor (diagnóstico de permisos). */
     suspend fun probarAcceso(recurso: String)
+
+    /** Solo depuración: cambia un carácter del token guardado. Devuelve false si no había token. */
+    suspend fun alterarTokenGuardado(): Boolean
 }

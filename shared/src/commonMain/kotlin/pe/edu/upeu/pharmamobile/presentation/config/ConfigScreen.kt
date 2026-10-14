@@ -34,7 +34,9 @@ fun ConfigScreen(
     sesion: Sesion?,
     diagnostico: SesionUiState.Diagnostico,
     alProbarClientes: () -> Unit,
-    alCerrarSesion: () -> Unit
+    alCerrarSesion: () -> Unit,
+    depuracion: Boolean,
+    alAlterarToken: () -> Unit
 ) {
     Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp)) {
         Text(
@@ -91,6 +93,15 @@ fun ConfigScreen(
             modifier = Modifier.padding(top = 22.dp)
         )
 
+        if (depuracion) {
+            OutlinedButton(
+                onClick = alAlterarToken,
+                modifier = Modifier.padding(top = 14.dp).fillMaxWidth()
+            ) {
+                Text("Depuración: alterar un carácter del token")
+            }
+        }
+
         AcercaDe(modifier = Modifier.padding(top = 22.dp))
 
         OutlinedButton(
@@ -126,6 +137,11 @@ private fun DiagnosticoPermisos(
                 SesionUiState.Diagnostico.Ninguno -> Unit
                 SesionUiState.Diagnostico.Consultando -> Text(
                     text = "Consultando…",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(top = 12.dp)
+                )
+                is SesionUiState.Diagnostico.Informacion -> Text(
+                    text = diagnostico.mensaje,
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(top = 12.dp)
                 )

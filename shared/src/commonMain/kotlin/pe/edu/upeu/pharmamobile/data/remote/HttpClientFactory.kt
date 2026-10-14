@@ -1,6 +1,7 @@
 package pe.edu.upeu.pharmamobile.data.remote
 
 import io.ktor.client.HttpClient
+import io.ktor.client.call.body
 import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.plugins.HttpCallValidator
 import io.ktor.client.plugins.HttpTimeout
@@ -23,6 +24,7 @@ import io.ktor.serialization.kotlinx.json.json
 import io.ktor.client.request.url
 import kotlinx.serialization.json.Json
 import pe.edu.upeu.pharmamobile.data.local.AlmacenSeguro
+import pe.edu.upeu.pharmamobile.data.remote.dto.ErrorResponseDto
 
 /**
  * URL base del backend PharmaSoft (https://github.com/dreyna/pharmaSoft),
@@ -94,6 +96,11 @@ fun crearHttpClient(
             handleResponseExceptionWithRequest { excepcion, peticion ->
                 val respuesta = (excepcion as? ClientRequestException)?.response ?: return@handleResponseExceptionWithRequest
                 val esLogin = peticion.url.encodedPath.endsWith(RUTA_LOGIN)
+                if (esDepuracion) {
+                    // Solo en depuración y solo el campo message del error: nunca cabeceras ni el token.
+                    val mensaje = runCatching { respuesta.body<ErrorResponseDto>().message }.getOrNull()
+                    println("SESION> ${peticion.method.value} ${peticion.url.encodedPath} -> ${respuesta.status.value} \"$mensaje\"")
+                }
                 if (respuesta.status == HttpStatusCode.Unauthorized && !esLogin) alSesionExpirada()
             }
         }

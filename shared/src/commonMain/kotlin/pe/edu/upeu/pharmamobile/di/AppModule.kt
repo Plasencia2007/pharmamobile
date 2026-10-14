@@ -13,6 +13,7 @@ import pe.edu.upeu.pharmamobile.data.repository.AuthRepositorioRest
 import pe.edu.upeu.pharmamobile.data.repository.ProductoRepositorioRest
 import pe.edu.upeu.pharmamobile.domain.repository.AuthRepository
 import pe.edu.upeu.pharmamobile.domain.session.GestorSesion
+import pe.edu.upeu.pharmamobile.domain.usecase.AlterarTokenGuardadoUseCase
 import pe.edu.upeu.pharmamobile.domain.usecase.CerrarSesionUseCase
 import pe.edu.upeu.pharmamobile.domain.usecase.IniciarSesionUseCase
 import pe.edu.upeu.pharmamobile.domain.usecase.ProbarAccesoUseCase
@@ -54,6 +55,7 @@ val domainModule = module {
     factory { IniciarSesionUseCase(get()) }
     factory { CerrarSesionUseCase(get()) }
     factory { ProbarAccesoUseCase(get()) }
+    factory { AlterarTokenGuardadoUseCase(get()) }
     factory { ListarProductosUseCase(get()) }
     factory { ObtenerProductoUseCase(get()) }
     factory { RegistrarProductoUseCase(get()) }
@@ -62,7 +64,7 @@ val domainModule = module {
 }
 
 val presentationModule = module {
-    viewModel { SesionViewModel(get(), get(), get(), get()) }
+    viewModel { SesionViewModel(get(), get(), get(), get(), get()) }
     viewModel { ProductoViewModel(get(), get(), get(), get()) }
     viewModel { (productoId: Long) -> DetalleProductoViewModel(productoId, get(), get()) }
 }

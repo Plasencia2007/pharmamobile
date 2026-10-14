@@ -41,3 +41,8 @@ class ProbarAccesoUseCase(private val repositorio: AuthRepository) {
             Result.failure(e)
         }
 }
+
+/** Solo depuración: altera el token guardado para provocar el escenario "token alterado". */
+class AlterarTokenGuardadoUseCase(private val repositorio: AuthRepository) {
+    suspend operator fun invoke(): Boolean = repositorio.alterarTokenGuardado()
+}

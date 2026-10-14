@@ -37,7 +37,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 import org.koin.compose.KoinContext
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.qualifier.named
+import pe.edu.upeu.pharmamobile.di.NOMBRE_DEPURACION
 import pe.edu.upeu.pharmamobile.domain.model.Permisos
 import pe.edu.upeu.pharmamobile.domain.model.Sesion
 import pe.edu.upeu.pharmamobile.navigation.Screen
@@ -59,6 +62,7 @@ private val destinos = listOf(Screen.Inicio, Screen.Productos, Screen.Clientes, 
 @Preview
 fun App() = KoinContext {
     val sesionViewModel = koinViewModel<SesionViewModel>()
+    val depuracion: Boolean = koinInject(named(NOMBRE_DEPURACION))
     val sesionUi by sesionViewModel.uiState.collectAsStateWithLifecycle()
     val sesion = sesionUi.sesion
     var darkTheme by remember { mutableStateOf(false) }
@@ -139,7 +143,7 @@ fun App() = KoinContext {
                 when (pantallaActual) {
                     is Screen.Inicio -> InicioScreen(sesion = sesion, onNavigate = { pantallaActual = it })
                     is Screen.Productos -> {
-                        val productoViewModel = koinViewModel<ProductoViewModel>()
+                        val productoViewModel = koinViewModel<ProductoViewModel>(key = "productos-${sesionUi.generacion}")
                         ProductoScreen(
                             viewModel = productoViewModel,
                             onSuccess = mostrarExito,
@@ -156,7 +160,9 @@ fun App() = KoinContext {
                         sesion = sesion,
                         diagnostico = sesionUi.diagnostico,
                         alProbarClientes = { sesionViewModel.probarAcceso("clientes") },
-                        alCerrarSesion = sesionViewModel::cerrarSesion
+                        alCerrarSesion = sesionViewModel::cerrarSesion,
+                        depuracion = depuracion,
+                        alAlterarToken = sesionViewModel::alterarTokenGuardado
                     )
                 }
             }
