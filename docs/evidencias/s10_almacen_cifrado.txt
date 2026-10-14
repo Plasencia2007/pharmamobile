@@ -1,0 +1,21 @@
+# Almacenamiento del token (emulador Android, 14-10-2026)
+
+## Archivos de preferencias de la app
+total 24
+drwxrwx--x 2 u0_a209 u0_a209 4096 2026-10-14 19:04 .
+drwx------ 5 u0_a209 u0_a209 4096 2026-10-14 19:03 ..
+-rw-rw---- 1 u0_a209 u0_a209 1790 2026-10-14 19:04 sesion_segura.xml
+
+## ¿Aparece el prefijo de un JWT (eyJ) en algun archivo de la app?
+(sin resultados = no hay JWT en texto plano)
+
+## ¿Aparece en logcat?
+0
+
+## Contenido de sesion_segura.xml (clave y valor cifrados con AES-256, llave en Android Keystore)
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<map>
+    <string name="__androidx_security_crypto_encrypted_prefs_key_keyset__">12a701ed9f21feaa34c5c8afcb05041494c9df7830bc3979599367478d879a3c374eddc719ee2616e67ad
+    <string name="AQcNfjlINQPHU2qI+z5C4HH3EBUBdaCB">AV4Yd2bDQnZcHp9usRl8uM2/EbuDSXkPavoeGwTEEJxRLcPaMwS7KnkUQ2Dt3CirBDpK/xed3QzeOozKBY4hQ/LAD7OEigNHquV2w1sXM1xg
+    <string name="__androidx_security_crypto_encrypted_prefs_value_keyset__">12880164f1d211a7cd835dc3c515e5be5c4837f5279cdf6f8a7a42892743301bcf72f1aba5fd266fd7f
+</map>

@@ -43,6 +43,8 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.painterResource
+import pe.edu.upeu.pharmamobile.domain.model.Permisos
+import pe.edu.upeu.pharmamobile.domain.model.Sesion
 import pe.edu.upeu.pharmamobile.navigation.Screen
 import pe.edu.upeu.pharmamobile.presentation.theme.Amber
 import pe.edu.upeu.pharmamobile.presentation.theme.AmberSoft
@@ -56,7 +58,7 @@ import pharmamobile.shared.generated.resources.Res
 import pharmamobile.shared.generated.resources.pharmamobile_logo
 
 @Composable
-fun InicioScreen(onNavigate: (Screen) -> Unit) {
+fun InicioScreen(sesion: Sesion, onNavigate: (Screen) -> Unit) {
     val ahora = remember { Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()) }
     val saludo = remember(ahora) { saludoSegunHora(ahora.hour) }
     val fecha = remember(ahora) { formatearFecha(ahora.dayOfWeek.ordinal, ahora.dayOfMonth, ahora.monthNumber) }
@@ -96,7 +98,7 @@ fun InicioScreen(onNavigate: (Screen) -> Unit) {
                     text = buildAnnotatedString {
                         append("$saludo,\n")
                         withStyle(SpanStyle(color = AmberSoft)) {
-                            append("Ana")
+                            append(sesion.nombreCompleto.substringBefore(" "))
                         }
                     },
                     style = MaterialTheme.typography.headlineMedium,
@@ -123,51 +125,52 @@ fun InicioScreen(onNavigate: (Screen) -> Unit) {
             modifier = Modifier.padding(horizontal = 20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Tile(
-                    titulo = "Productos",
-                    descripcion = "Registro e inventario",
-                    icono = Icons.Filled.ShoppingCart,
-                    acento = Emerald,
-                    fondoSuave = MaterialTheme.colorScheme.primaryContainer,
-                    onClick = { onNavigate(Screen.Productos) },
-                    modifier = Modifier.weight(1f)
-                )
-                Tile(
-                    titulo = "Clientes",
-                    descripcion = "Administra tu cartera",
-                    icono = Icons.Filled.Person,
-                    acento = Violet,
-                    fondoSuave = VioletSoft,
-                    onClick = { onNavigate(Screen.Clientes) },
-                    modifier = Modifier.weight(1f)
-                )
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Tile(
-                    titulo = "Pedidos",
-                    descripcion = "Controla despachos",
-                    icono = Icons.AutoMirrored.Filled.List,
-                    acento = Amber,
-                    fondoSuave = AmberSoft,
-                    onClick = { onNavigate(Screen.Pedidos) },
-                    modifier = Modifier.weight(1f)
-                )
-                Tile(
-                    titulo = "Nuevo pedido",
-                    descripcion = "Empieza en 30 s",
-                    icono = Icons.Filled.Add,
-                    acento = Coral,
-                    fondoSuave = CoralSoft,
-                    onClick = { onNavigate(Screen.Pedidos) },
-                    modifier = Modifier.weight(1f)
-                )
+            // Solo se ofrecen los atajos a los que el rol tiene permiso: si no, el servidor respondería 403.
+            val atajos = listOfNotNull(
+                if (sesion.puede(Permisos.CATALOGO_LEER)) AtajoInicio(
+                    "Productos", "Registro e inventario", Icons.Filled.ShoppingCart, Emerald,
+                    MaterialTheme.colorScheme.primaryContainer, Screen.Productos
+                ) else null,
+                if (sesion.puede(Permisos.CLIENTES_LEER)) AtajoInicio(
+                    "Clientes", "Administra tu cartera", Icons.Filled.Person, Violet, VioletSoft, Screen.Clientes
+                ) else null,
+                if (sesion.puede(Permisos.VENTAS_LEER)) AtajoInicio(
+                    "Pedidos", "Controla despachos", Icons.AutoMirrored.Filled.List, Amber, AmberSoft, Screen.Pedidos
+                ) else null,
+                if (sesion.puede(Permisos.VENTAS_REGISTRAR)) AtajoInicio(
+                    "Nuevo pedido", "Empieza en 30 s", Icons.Filled.Add, Coral, CoralSoft, Screen.Pedidos
+                ) else null
+            )
+            atajos.chunked(2).forEach { fila ->
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    fila.forEach { atajo ->
+                        Tile(
+                            titulo = atajo.titulo,
+                            descripcion = atajo.descripcion,
+                            icono = atajo.icono,
+                            acento = atajo.acento,
+                            fondoSuave = atajo.fondoSuave,
+                            onClick = { onNavigate(atajo.destino) },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                    if (fila.size == 1) Spacer(modifier = Modifier.weight(1f))
+                }
             }
         }
 
         Spacer(modifier = Modifier.height(20.dp))
     }
 }
+
+private class AtajoInicio(
+    val titulo: String,
+    val descripcion: String,
+    val icono: ImageVector,
+    val acento: Color,
+    val fondoSuave: Color,
+    val destino: Screen
+)
 
 @Composable
 private fun Tile(

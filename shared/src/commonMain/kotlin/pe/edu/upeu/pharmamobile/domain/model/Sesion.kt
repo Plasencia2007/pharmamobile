@@ -17,4 +17,5 @@ object Permisos {
     const val CATALOGO_ESCRIBIR = "CATALOGO_ESCRIBIR"
     const val CLIENTES_LEER = "CLIENTES_LEER"
     const val VENTAS_LEER = "VENTAS_LEER"
+    const val VENTAS_REGISTRAR = "VENTAS_REGISTRAR"
 }

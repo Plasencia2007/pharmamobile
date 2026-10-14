@@ -137,7 +137,7 @@ fun App() = KoinContext {
         ) { paddingValues ->
             Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
                 when (pantallaActual) {
-                    is Screen.Inicio -> InicioScreen(onNavigate = { pantallaActual = it })
+                    is Screen.Inicio -> InicioScreen(sesion = sesion, onNavigate = { pantallaActual = it })
                     is Screen.Productos -> {
                         val productoViewModel = koinViewModel<ProductoViewModel>()
                         ProductoScreen(
