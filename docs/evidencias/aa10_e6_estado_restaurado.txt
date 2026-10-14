@@ -1,0 +1,3 @@
+admin|t
+almacen|t
+vendedor|t

@@ -1,0 +1,12 @@
+# Restauracion del entorno (2026-10-14 15:20:14)
+== Backend reiniciado sin APP_JWT_EXPIRACIONMINUTOS; el yaml conserva expiracion-minutos: 60 ==
+54:    expiracion-minutos: 60
+login admin -> expiraEnSegundos = 3600
+== Estado de los usuarios en la base (usuario | estado) ==
+admin | true
+almacen | true
+vendedor | true
+== Login de los tres usuarios ==
+admin -> HTTP 200
+vendedor -> HTTP 200
+almacen -> HTTP 200

@@ -1,0 +1,13 @@
+# Escenario 5: prefijo incorrecto (ejecucion real, 2026-10-14 15:13:56)
+Mismo token valido de 'vendedor', GET /api/v1/productos. La app siempre escribe 'Bearer' (plugin Auth), asi que este caso se provoca a nivel HTTP.
+
+== Authorization: Bearer <token>  (control) ==
+HTTP 200
+
+== Authorization: bearer <token>  (minuscula) ==
+{"timestamp":"2026-10-14T15:13:56.324777900","status":401,"error":"Unauthorized","message":"Debe iniciar sesión para acceder a este recurso","path":"/api/v1/productos","validationErrors":null}
+HTTP 401
+
+== Authorization: Token <token>  (esquema distinto) ==
+{"timestamp":"2026-10-14T15:13:56.367048700","status":401,"error":"Unauthorized","message":"Debe iniciar sesión para acceder a este recurso","path":"/api/v1/productos","validationErrors":null}
+HTTP 401
