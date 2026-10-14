@@ -1,3 +1,3 @@
-10-14 19:06:37.238  5593  5593 I System.out: HttpClient: REQUEST: http://10.0.2.2:8082/api/v1/auth/me
-10-14 19:06:37.238  5593  5593 I System.out: -> Authorization: ***
-10-14 19:06:38.020  5593  5593 I System.out: HttpClient: RESPONSE: 200 
+10-14 19:35:33.579  9161  9161 I System.out: HttpClient: REQUEST: http://10.0.2.2:8082/api/v1/auth/me
+10-14 19:35:33.579  9161  9161 I System.out: -> Authorization: ***
+10-14 19:35:34.574  9161  9161 I System.out: HttpClient: RESPONSE: 200 
