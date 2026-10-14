@@ -4,10 +4,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,16 +21,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import pe.edu.upeu.pharmamobile.domain.model.Sesion
 import pe.edu.upeu.pharmamobile.platform.InfoDispositivo
+import pe.edu.upeu.pharmamobile.presentation.sesion.SesionUiState
 
 @Composable
 fun ConfigScreen(
     darkTheme: Boolean,
     onDarkThemeChange: (Boolean) -> Unit,
     alertasStockBajo: Boolean,
-    onAlertasStockBajoChange: (Boolean) -> Unit
+    onAlertasStockBajoChange: (Boolean) -> Unit,
+    sesion: Sesion?,
+    diagnostico: SesionUiState.Diagnostico,
+    alProbarClientes: () -> Unit,
+    alCerrarSesion: () -> Unit
 ) {
-    Column(modifier = Modifier.fillMaxSize().padding(20.dp)) {
+    Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp)) {
         Text(
             text = "Configuración",
             style = MaterialTheme.typography.headlineSmall,
@@ -62,19 +73,76 @@ fun ConfigScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
-                text = "Ana Restrepo",
+                text = sesion?.nombreCompleto ?: "Sin sesión",
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.padding(top = 8.dp)
             )
             Text(
-                text = "Farmacia Central · v1.2.0",
+                text = sesion?.let { "@${it.usuario} · ${it.permisos.size} permisos" } ?: "",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
+        DiagnosticoPermisos(
+            diagnostico = diagnostico,
+            alProbar = alProbarClientes,
+            modifier = Modifier.padding(top = 22.dp)
+        )
+
         AcercaDe(modifier = Modifier.padding(top = 22.dp))
+
+        OutlinedButton(
+            onClick = alCerrarSesion,
+            modifier = Modifier.padding(top = 22.dp, bottom = 8.dp).fillMaxWidth().height(52.dp),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Text("Cerrar sesión", color = MaterialTheme.colorScheme.error)
+        }
+    }
+}
+
+/** Pide un recurso protegido para observar qué responde el servidor según el rol. */
+@Composable
+private fun DiagnosticoPermisos(
+    diagnostico: SesionUiState.Diagnostico,
+    alProbar: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(modifier = modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(18.dp)) {
+            Text(text = "Diagnóstico de permisos", style = MaterialTheme.typography.titleMedium)
+            Text(
+                text = "Consulta la lista de clientes en el servidor con tu sesión actual.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 2.dp, bottom = 12.dp)
+            )
+            OutlinedButton(onClick = alProbar, modifier = Modifier.fillMaxWidth()) {
+                Text("Probar acceso a clientes")
+            }
+            when (diagnostico) {
+                SesionUiState.Diagnostico.Ninguno -> Unit
+                SesionUiState.Diagnostico.Consultando -> Text(
+                    text = "Consultando…",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(top = 12.dp)
+                )
+                is SesionUiState.Diagnostico.Permitido -> Text(
+                    text = "Acceso permitido (200): el servidor devolvió ${diagnostico.recurso}.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(top = 12.dp)
+                )
+                is SesionUiState.Diagnostico.Denegado -> Text(
+                    text = diagnostico.mensaje,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(top = 12.dp)
+                )
+            }
+        }
     }
 }
 

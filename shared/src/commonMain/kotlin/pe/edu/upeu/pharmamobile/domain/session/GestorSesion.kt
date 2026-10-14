@@ -35,9 +35,8 @@ class GestorSesion(private val auth: AuthRepository) {
         _sesion.value = sesion
     }
 
-    /** Cierre voluntario: borra el token y vuelve al login sin aviso. */
-    suspend fun cerrar() {
-        auth.cerrarSesion()
+    /** Cierre voluntario: el token ya fue borrado por CerrarSesionUseCase; vuelve al login sin aviso. */
+    fun alCerrarSesion() {
         _sesion.value = null
     }
 

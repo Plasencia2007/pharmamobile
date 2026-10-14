@@ -70,7 +70,8 @@ private fun filtrarInventario(inventario: List<Producto>, pestana: Int): List<Pr
 @Composable
 fun ProductoScreen(
     viewModel: ProductoViewModel,
-    onSuccess: (String) -> Unit
+    onSuccess: (String) -> Unit,
+    puedeEscribir: Boolean = true
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var tabSeleccionada by remember { mutableStateOf(0) }
@@ -115,7 +116,7 @@ fun ProductoScreen(
                     modifier = Modifier.padding(top = 4.dp)
                 )
             }
-            Box(
+            if (puedeEscribir) Box(
                 modifier = Modifier
                     .size(46.dp)
                     .clip(CircleShape)
@@ -193,6 +194,7 @@ fun ProductoScreen(
                             ProductoInventarioItem(
                                 producto = producto,
                                 procesando = procesando,
+                                puedeEscribir = puedeEscribir,
                                 onVer = { productoDetalleId = producto.id },
                                 onEditar = {
                                     productoEditando = producto
@@ -403,6 +405,7 @@ private fun colorDePestana(indice: Int): Color = when (indice) {
 private fun ProductoInventarioItem(
     producto: Producto,
     procesando: Boolean,
+    puedeEscribir: Boolean,
     onVer: () -> Unit,
     onEditar: () -> Unit,
     onEliminar: () -> Unit
@@ -460,7 +463,7 @@ private fun ProductoInventarioItem(
                         color = colores.primary
                     )
                 }
-            } else {
+            } else if (puedeEscribir) {
                 Row(modifier = Modifier.padding(top = 2.dp)) {
                     IconButton(onClick = onEditar, modifier = Modifier.size(36.dp)) {
                         Icon(

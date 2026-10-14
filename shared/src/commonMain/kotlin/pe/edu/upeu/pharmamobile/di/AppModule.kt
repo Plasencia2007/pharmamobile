@@ -24,6 +24,7 @@ import pe.edu.upeu.pharmamobile.domain.usecase.ObtenerProductoUseCase
 import pe.edu.upeu.pharmamobile.domain.usecase.RegistrarProductoUseCase
 import pe.edu.upeu.pharmamobile.presentation.detalle.DetalleProductoViewModel
 import pe.edu.upeu.pharmamobile.presentation.producto.ProductoViewModel
+import pe.edu.upeu.pharmamobile.presentation.sesion.SesionViewModel
 
 /**
  * El backend exige categoriaId en cada POST/PUT y esta app todavia no
@@ -61,6 +62,7 @@ val domainModule = module {
 }
 
 val presentationModule = module {
+    viewModel { SesionViewModel(get(), get(), get(), get()) }
     viewModel { ProductoViewModel(get(), get(), get(), get()) }
     viewModel { (productoId: Long) -> DetalleProductoViewModel(productoId, get(), get()) }
 }

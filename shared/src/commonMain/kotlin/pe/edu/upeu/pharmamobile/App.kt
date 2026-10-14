@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -33,9 +34,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 import org.koin.compose.KoinContext
 import org.koin.compose.viewmodel.koinViewModel
+import pe.edu.upeu.pharmamobile.domain.model.Permisos
+import pe.edu.upeu.pharmamobile.domain.model.Sesion
 import pe.edu.upeu.pharmamobile.navigation.Screen
 import pe.edu.upeu.pharmamobile.presentation.cliente.ClienteScreen
 import pe.edu.upeu.pharmamobile.presentation.components.PharmaTopBar
@@ -44,6 +48,8 @@ import pe.edu.upeu.pharmamobile.presentation.inicio.InicioScreen
 import pe.edu.upeu.pharmamobile.presentation.pedido.PedidoScreen
 import pe.edu.upeu.pharmamobile.presentation.producto.ProductoScreen
 import pe.edu.upeu.pharmamobile.presentation.producto.ProductoViewModel
+import pe.edu.upeu.pharmamobile.presentation.sesion.LoginScreen
+import pe.edu.upeu.pharmamobile.presentation.sesion.SesionViewModel
 import pe.edu.upeu.pharmamobile.presentation.theme.PharmaMobileTheme
 
 private val destinos = listOf(Screen.Inicio, Screen.Productos, Screen.Clientes, Screen.Pedidos, Screen.Config)
@@ -52,9 +58,13 @@ private val destinos = listOf(Screen.Inicio, Screen.Productos, Screen.Clientes, 
 @Composable
 @Preview
 fun App() = KoinContext {
+    val sesionViewModel = koinViewModel<SesionViewModel>()
+    val sesionUi by sesionViewModel.uiState.collectAsStateWithLifecycle()
+    val sesion = sesionUi.sesion
     var darkTheme by remember { mutableStateOf(false) }
     var alertasStockBajo by remember { mutableStateOf(true) }
-    var pantallaActual by remember { mutableStateOf<Screen>(Screen.Inicio) }
+    // Al cambiar de usuario se vuelve a Inicio: el nuevo rol puede no tener acceso a la sección anterior.
+    var pantallaActual by remember(sesion?.usuario) { mutableStateOf<Screen>(Screen.Inicio) }
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -63,6 +73,22 @@ fun App() = KoinContext {
     }
 
     PharmaMobileTheme(darkTheme = darkTheme) {
+        if (sesion == null) {
+            if (sesionUi.restaurando) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                }
+            } else {
+                LoginScreen(
+                    estado = sesionUi,
+                    alCambiarUsuario = sesionViewModel::alCambiarUsuario,
+                    alCambiarClave = sesionViewModel::alCambiarClave,
+                    alIniciar = sesionViewModel::iniciarSesion
+                )
+            }
+            return@PharmaMobileTheme
+        }
+        val destinosVisibles = destinos.filter { puedeVer(it, sesion) }
         Scaffold(
             topBar = { PharmaTopBar(seccionActual = pantallaActual.titulo) },
             snackbarHost = {
@@ -91,7 +117,7 @@ fun App() = KoinContext {
             },
             bottomBar = {
                 NavigationBar(containerColor = MaterialTheme.colorScheme.background) {
-                    destinos.forEach { destino ->
+                    destinosVisibles.forEach { destino ->
                         NavigationBarItem(
                             selected = pantallaActual == destino,
                             onClick = { pantallaActual = destino },
@@ -114,7 +140,11 @@ fun App() = KoinContext {
                     is Screen.Inicio -> InicioScreen(onNavigate = { pantallaActual = it })
                     is Screen.Productos -> {
                         val productoViewModel = koinViewModel<ProductoViewModel>()
-                        ProductoScreen(viewModel = productoViewModel, onSuccess = mostrarExito)
+                        ProductoScreen(
+                            viewModel = productoViewModel,
+                            onSuccess = mostrarExito,
+                            puedeEscribir = sesion.puede(Permisos.CATALOGO_ESCRIBIR)
+                        )
                     }
                     is Screen.Clientes -> ClienteScreen(onSuccess = mostrarExito)
                     is Screen.Pedidos -> PedidoScreen(onSuccess = mostrarExito)
@@ -122,12 +152,24 @@ fun App() = KoinContext {
                         darkTheme = darkTheme,
                         onDarkThemeChange = { darkTheme = it },
                         alertasStockBajo = alertasStockBajo,
-                        onAlertasStockBajoChange = { alertasStockBajo = it }
+                        onAlertasStockBajoChange = { alertasStockBajo = it },
+                        sesion = sesion,
+                        diagnostico = sesionUi.diagnostico,
+                        alProbarClientes = { sesionViewModel.probarAcceso("clientes") },
+                        alCerrarSesion = sesionViewModel::cerrarSesion
                     )
                 }
             }
         }
     }
+}
+
+/** Cada sección se ofrece solo si el rol tiene el permiso que el servidor exige; si no, respondería 403. */
+private fun puedeVer(screen: Screen, sesion: Sesion) = when (screen) {
+    is Screen.Productos -> sesion.puede(Permisos.CATALOGO_LEER)
+    is Screen.Clientes -> sesion.puede(Permisos.CLIENTES_LEER)
+    is Screen.Pedidos -> sesion.puede(Permisos.VENTAS_LEER)
+    else -> true
 }
 
 private fun iconoPara(screen: Screen) = when (screen) {

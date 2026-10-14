@@ -24,6 +24,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -35,6 +37,7 @@ fun PharmaField(
     errorMessage: String? = null,
     optional: Boolean = false,
     keyboardType: KeyboardType = KeyboardType.Text,
+    esClave: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -87,6 +90,7 @@ fun PharmaField(
                 textStyle = MaterialTheme.typography.bodyLarge.copy(color = colores.onSurface),
                 cursorBrush = androidx.compose.ui.graphics.SolidColor(colores.secondary),
                 keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+                visualTransformation = if (esClave) PasswordVisualTransformation() else VisualTransformation.None,
                 interactionSource = interactionSource,
                 modifier = Modifier.fillMaxWidth()
             )
