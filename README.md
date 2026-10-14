@@ -182,6 +182,61 @@ formulario.
 Tráfico HTTP sin cifrar hacia `10.0.2.2` está habilitado solo para
 desarrollo vía `androidApp/src/main/res/xml/network_security_config.xml`.
 
+### Autenticación (JWT)
+
+La app inicia sesión contra `POST /api/v1/auth/login` de PharmaSoft, guarda
+el token en el almacén cifrado de cada plataforma y lo adjunta a todas las
+peticiones con el plugin `Auth` de Ktor: ningún repositorio escribe la
+cabecera `Authorization` a mano.
+
+**Usuarios de prueba** (sembrados por Flyway en el backend del curso):
+
+| Usuario | Contraseña | Rol | Permisos |
+|---|---|---|---|
+| `admin` | `Admin123` | ADMIN | Los ocho permisos |
+| `vendedor` | `Vendedor123` | VENDEDOR | Catálogo solo lectura; clientes y ventas completos |
+| `almacen` | `Almacen123` | ALMACENERO | Catálogo: leer y escribir |
+
+**Capas** (ningún archivo de `domain` importa Ktor, Android ni UIKit):
+
+| Capa | Piezas |
+|---|---|
+| `domain` | `Sesion` (con `puede(permiso)`), `Credenciales`, `ErrorSesion`, `AuthRepository`, `GestorSesion` (única fuente de verdad de la sesión), `IniciarSesionUseCase`, `CerrarSesionUseCase` |
+| `data` | `AuthRepositorioRest`, `LoginDto`, `AlmacenSeguro` (interfaz), `HttpClientFactory` con `Auth` + `Logging` |
+| `androidMain` | `AlmacenSeguroAndroid`: `EncryptedSharedPreferences` con llave AES-256 en el Android Keystore |
+| `iosMain` | `AlmacenSeguroIos`: Keychain (`SecItemAdd` / `SecItemCopyMatching`). **Solo compila; no se ejecutó (no hay Mac)** |
+| `presentation` | `LoginScreen`, `SesionViewModel`; `App` decide entre login y contenido según la sesión |
+
+**Decisiones**
+
+- `AlmacenSeguro` es una interfaz inyectada y no un `expect class`: la
+  versión de Android necesita un `Context` y la de iOS no recibe nada.
+- `sendWithoutRequest` devuelve `true` salvo en `/auth/login`: el token
+  viaja ya en la primera petición, sin el ciclo "401 y reintento".
+- Tras guardar o borrar el token se invoca `clearToken()` del proveedor
+  bearer, porque `loadTokens` queda en caché.
+- `Logging` usa `sanitizeHeader` para `Authorization` y queda en
+  `LogLevel.NONE` fuera de depuración (`FLAG_DEBUGGABLE` en Android,
+  `Platform.isDebugBinary` en iOS). En el log de Ktor la cabecera sale como
+  `Authorization: ***`.
+- **401 y 403 son distintos.** Un 401 en una ruta protegida (token vencido,
+  alterado o ausente) borra el token, limpia el estado y lleva al login con
+  un aviso. Un 403 mantiene la sesión y muestra "No tienes permiso para
+  realizar esta operación". En el login, un 401 significa credenciales
+  incorrectas y no cierra nada.
+- La interfaz oculta lo que el rol no puede usar (`sesion.puede(...)`): el
+  botón de registrar y editar/eliminar sin `CATALOGO_ESCRIBIR`, y las
+  secciones Clientes y Pedidos sin `CLIENTES_LEER` / `VENTAS_LEER`.
+- Al reabrir la app, `sesionGuardada()` lee el token y consulta `/auth/me`
+  para reconstruir la sesión; si el servidor responde 401 el token se
+  descarta.
+- El token dura 3600 s y el backend no tiene endpoint de renovación: al
+  vencer hay que volver a iniciar sesión.
+
+**Evidencias** en `docs/evidencias/s10_*` (capturas del emulador Android,
+registros de Ktor con la cabecera saneada, comprobación del almacén cifrado
+y matriz de permisos ejecutada contra el servidor).
+
 ---
 
 Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
