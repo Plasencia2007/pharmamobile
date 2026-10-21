@@ -12,7 +12,8 @@ import pe.edu.upeu.pharmamobile.data.remote.ProductoApi
 import pe.edu.upeu.pharmamobile.db.PharmaDb
 import pe.edu.upeu.pharmamobile.data.remote.crearHttpClient
 import pe.edu.upeu.pharmamobile.data.repository.AuthRepositorioRest
-import pe.edu.upeu.pharmamobile.data.repository.ProductoRepositorioRest
+import pe.edu.upeu.pharmamobile.data.local.ProductoLocal
+import pe.edu.upeu.pharmamobile.data.repository.ProductoRepositorioOffline
 import pe.edu.upeu.pharmamobile.domain.repository.AuthRepository
 import pe.edu.upeu.pharmamobile.domain.session.GestorSesion
 import pe.edu.upeu.pharmamobile.domain.usecase.AlterarTokenGuardadoUseCase
@@ -51,7 +52,8 @@ val dataModule = module {
     single { ProductoApi(get<HttpClient>()) }
     single<AuthRepository> { AuthRepositorioRest(get(), get()) }
     single { GestorSesion(get()) }
-    single<ProductoRepository> { ProductoRepositorioRest(get(), CATEGORIA_POR_DEFECTO) }
+    single { ProductoLocal(get()) }
+    single<ProductoRepository> { ProductoRepositorioOffline(get(), get(), CATEGORIA_POR_DEFECTO) }
 }
 
 val domainModule = module {

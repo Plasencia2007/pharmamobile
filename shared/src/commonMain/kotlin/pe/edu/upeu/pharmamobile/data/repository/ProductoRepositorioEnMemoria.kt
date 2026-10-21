@@ -63,10 +63,9 @@ class ProductoRepositorioEnMemoria : ProductoRepository {
         return productoConId
     }
 
-    override suspend fun listar(): List<Producto> {
-        delay(500) // Estado de carga visible al listar
-        return inventario.toList()
-    }
+    override fun observar(): Flow<List<Producto>> = flow { emit(inventario.toList()) }
+
+    override suspend fun sincronizar() = Unit
 
     override suspend fun obtener(id: Long): Producto {
         delay(300)

@@ -45,6 +45,9 @@ class ProductoLocal(base: PharmaDb) {
             local
         }
 
+    /** Edicion de un producto que sigue pendiente: conserva su id negativo y su marca. */
+    fun guardarEdicionPendiente(producto: Producto) = insertar(producto.copy(pendiente = true))
+
     /** Fila que el servidor ya conoce (alta, edicion o respuesta del servidor). */
     fun guardarSincronizado(producto: Producto) = insertar(producto.copy(pendiente = false))
 
