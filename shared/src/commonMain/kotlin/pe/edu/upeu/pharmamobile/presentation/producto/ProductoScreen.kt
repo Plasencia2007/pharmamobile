@@ -459,7 +459,7 @@ private fun ProductoInventarioItem(
             EstadoBadge(producto)
             if (producto.pendiente) {
                 Text(
-                    text = "Pendiente de enviar",
+                    text = "Pendiente",
                     style = MaterialTheme.typography.labelSmall,
                     color = Amber,
                     modifier = Modifier.padding(top = 2.dp)
