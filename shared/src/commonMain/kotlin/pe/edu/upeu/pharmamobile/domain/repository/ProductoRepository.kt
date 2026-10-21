@@ -1,6 +1,7 @@
 package pe.edu.upeu.pharmamobile.domain.repository
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import pe.edu.upeu.pharmamobile.domain.model.Producto
 
 /**
@@ -27,4 +28,10 @@ interface ProductoRepository {
 
     /** Sube lo pendiente y DESPUES trae la lista del servidor. En ese orden. */
     suspend fun sincronizar()
+
+    /**
+     * Cuando termino bien la ultima sincronizacion (milisegundos epoch), o null si
+     * nunca se sincronizo. Por defecto null: los repositorios sin base local no la guardan.
+     */
+    fun observarUltimaSincronizacion(): Flow<Long?> = flowOf(null)
 }

@@ -8,6 +8,7 @@ import pe.edu.upeu.pharmamobile.data.mapper.toRequest
 import pe.edu.upeu.pharmamobile.data.remote.ProductoApi
 import pe.edu.upeu.pharmamobile.domain.model.Producto
 import pe.edu.upeu.pharmamobile.domain.repository.ProductoRepository
+import kotlin.time.Clock
 
 /** Productos que se piden al servidor en cada sincronizacion (una sola pagina grande). */
 private const val TAMANIO_SINCRONIZACION = 100
@@ -21,10 +22,14 @@ private const val TAMANIO_SINCRONIZACION = 100
 class ProductoRepositorioOffline(
     private val local: ProductoLocal,
     private val remoto: ProductoApi,
-    private val categoriaPorDefecto: Long
+    private val categoriaPorDefecto: Long,
+    /** Inyectable para que las pruebas fijen la hora en lugar de depender del reloj real. */
+    private val ahora: () -> Long = { Clock.System.now().toEpochMilliseconds() }
 ) : ProductoRepository {
 
     override fun observar(): Flow<List<Producto>> = local.observar()
+
+    override fun observarUltimaSincronizacion(): Flow<Long?> = local.observarUltimaSincronizacion()
 
     override suspend fun obtener(id: Long): Producto =
         local.obtener(id) ?: remoto.obtener(id).toDomain().also { local.guardarSincronizado(it) }
@@ -60,6 +65,9 @@ class ProductoRepositorioOffline(
         local.reemplazarSincronizados(
             remoto.listar(pagina = 0, tamanio = TAMANIO_SINCRONIZACION).contenido.map { it.toDomain() }
         )
+        // Solo se llega aqui si la subida y la bajada terminaron bien: un fallo a medias
+        // lanza antes y conserva la marca anterior, que es la de los datos que se ven.
+        local.registrarSincronizacion(ahora())
     }
 
     private suspend fun subirPendientes() {

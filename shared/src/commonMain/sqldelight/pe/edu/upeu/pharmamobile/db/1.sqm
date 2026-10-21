@@ -1,0 +1,7 @@
+-- Version 1 -> 2: los telefonos que ya tienen la base de la sesion 11 no
+-- vuelven a ejecutar el esquema completo; reciben solo la tabla nueva y
+-- conservan sus productos (incluidos los pendientes).
+CREATE TABLE sincronizacion (
+    id        INTEGER NOT NULL PRIMARY KEY CHECK (id = 1),
+    instante  INTEGER NOT NULL
+);
