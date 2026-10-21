@@ -8,82 +8,58 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import org.jetbrains.compose.resources.Font
 import pharmamobile.shared.generated.resources.Res
-import pharmamobile.shared.generated.resources.bricolage_bold
-import pharmamobile.shared.generated.resources.bricolage_medium
-import pharmamobile.shared.generated.resources.manrope_bold
-import pharmamobile.shared.generated.resources.manrope_medium
-import pharmamobile.shared.generated.resources.manrope_regular
-import pharmamobile.shared.generated.resources.manrope_semibold
+import pharmamobile.shared.generated.resources.atkinson_bold
+import pharmamobile.shared.generated.resources.atkinson_mono_regular
+import pharmamobile.shared.generated.resources.atkinson_mono_semibold
+import pharmamobile.shared.generated.resources.atkinson_regular
+import pharmamobile.shared.generated.resources.atkinson_semibold
+import pharmamobile.shared.generated.resources.schibsted_bold
+import pharmamobile.shared.generated.resources.schibsted_extrabold
+
+/*
+ * Atkinson Hyperlegible (Braille Institute) para el texto: distingue letras
+ * que se confunden (I l 1, O 0, rn m), clave para leer nombres de
+ * medicamentos parecidos. Su versión Mono para precios, stock e ids, y
+ * Schibsted Grotesk para los títulos. Todas con licencia OFL
+ * (docs/licencias-fuentes); los .ttf son instancias estáticas por peso de
+ * las fuentes variables de google/fonts.
+ */
+@Composable
+private fun atkinson() = FontFamily(
+    Font(Res.font.atkinson_regular, FontWeight.Normal),
+    Font(Res.font.atkinson_semibold, FontWeight.SemiBold),
+    Font(Res.font.atkinson_bold, FontWeight.Bold)
+)
+
+@Composable
+private fun schibsted() = FontFamily(
+    Font(Res.font.schibsted_bold, FontWeight.Bold),
+    Font(Res.font.schibsted_extrabold, FontWeight.ExtraBold)
+)
+
+/** Familia monoespaciada para cifras alineadas (precios, stock, ids, horas). */
+@Composable
+fun fuenteMono() = FontFamily(
+    Font(Res.font.atkinson_mono_regular, FontWeight.Normal),
+    Font(Res.font.atkinson_mono_semibold, FontWeight.SemiBold)
+)
 
 @Composable
 fun pharmaMobileTypography(): Typography {
-    val manrope = FontFamily(
-        Font(Res.font.manrope_regular, FontWeight.Normal),
-        Font(Res.font.manrope_medium, FontWeight.Medium),
-        Font(Res.font.manrope_semibold, FontWeight.SemiBold),
-        Font(Res.font.manrope_bold, FontWeight.Bold)
-    )
-    val bricolage = FontFamily(
-        Font(Res.font.bricolage_medium, FontWeight.Medium),
-        Font(Res.font.bricolage_bold, FontWeight.Bold)
-    )
-
+    val texto = atkinson()
+    val titulos = schibsted()
     return Typography(
-        headlineMedium = TextStyle(
-            fontFamily = bricolage,
-            fontWeight = FontWeight.Bold,
-            fontSize = 32.sp,
-            lineHeight = 35.sp,
-            letterSpacing = (-1).sp
-        ),
-        headlineSmall = TextStyle(
-            fontFamily = bricolage,
-            fontWeight = FontWeight.Bold,
-            fontSize = 26.sp,
-            lineHeight = 30.sp,
-            letterSpacing = (-0.6).sp
-        ),
-        titleLarge = TextStyle(
-            fontFamily = manrope,
-            fontWeight = FontWeight.Bold,
-            fontSize = 19.sp,
-            lineHeight = 24.sp,
-            letterSpacing = (-0.2).sp
-        ),
-        titleMedium = TextStyle(
-            fontFamily = manrope,
-            fontWeight = FontWeight.Bold,
-            fontSize = 16.sp,
-            lineHeight = 21.sp,
-            letterSpacing = (-0.1).sp
-        ),
-        bodyLarge = TextStyle(
-            fontFamily = manrope,
-            fontWeight = FontWeight.Normal,
-            fontSize = 15.sp,
-            lineHeight = 22.sp,
-            letterSpacing = 0.1.sp
-        ),
-        bodyMedium = TextStyle(
-            fontFamily = manrope,
-            fontWeight = FontWeight.Normal,
-            fontSize = 13.sp,
-            lineHeight = 19.sp,
-            letterSpacing = 0.1.sp
-        ),
-        labelLarge = TextStyle(
-            fontFamily = manrope,
-            fontWeight = FontWeight.SemiBold,
-            fontSize = 14.sp,
-            lineHeight = 18.sp,
-            letterSpacing = 0.1.sp
-        ),
-        labelSmall = TextStyle(
-            fontFamily = manrope,
-            fontWeight = FontWeight.Bold,
-            fontSize = 12.sp,
-            lineHeight = 15.sp,
-            letterSpacing = 1.2.sp
-        )
+        displaySmall = TextStyle(fontFamily = titulos, fontWeight = FontWeight.Bold, fontSize = 30.sp, lineHeight = 36.sp, letterSpacing = (-0.8).sp),
+        headlineMedium = TextStyle(fontFamily = titulos, fontWeight = FontWeight.Bold, fontSize = 28.sp, lineHeight = 34.sp, letterSpacing = (-0.7).sp),
+        headlineSmall = TextStyle(fontFamily = titulos, fontWeight = FontWeight.Bold, fontSize = 22.sp, lineHeight = 28.sp, letterSpacing = (-0.4).sp),
+        titleLarge = TextStyle(fontFamily = titulos, fontWeight = FontWeight.Bold, fontSize = 18.sp, lineHeight = 24.sp, letterSpacing = (-0.2).sp),
+        titleMedium = TextStyle(fontFamily = texto, fontWeight = FontWeight.SemiBold, fontSize = 15.sp, lineHeight = 20.sp),
+        titleSmall = TextStyle(fontFamily = texto, fontWeight = FontWeight.Bold, fontSize = 14.sp, lineHeight = 18.sp),
+        bodyLarge = TextStyle(fontFamily = texto, fontWeight = FontWeight.Normal, fontSize = 16.sp, lineHeight = 24.sp),
+        bodyMedium = TextStyle(fontFamily = texto, fontWeight = FontWeight.Normal, fontSize = 14.sp, lineHeight = 20.sp),
+        bodySmall = TextStyle(fontFamily = texto, fontWeight = FontWeight.Normal, fontSize = 13.sp, lineHeight = 18.sp),
+        labelLarge = TextStyle(fontFamily = texto, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, lineHeight = 18.sp),
+        labelMedium = TextStyle(fontFamily = texto, fontWeight = FontWeight.SemiBold, fontSize = 13.sp, lineHeight = 16.sp),
+        labelSmall = TextStyle(fontFamily = texto, fontWeight = FontWeight.Bold, fontSize = 12.sp, lineHeight = 15.sp, letterSpacing = 0.3.sp)
     )
 }

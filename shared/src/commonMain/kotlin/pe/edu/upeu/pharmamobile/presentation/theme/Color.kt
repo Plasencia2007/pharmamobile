@@ -2,52 +2,45 @@ package pe.edu.upeu.pharmamobile.presentation.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Paleta PharmaMobile — un acento saturado por rol funcional, no un solo
-// verde diluido: esmeralda para marca/éxito, violeta para lo secundario,
-// ámbar para alertas de stock, coral para acciones y energía.
-val Ink = Color(0xFF15221C)
-val Emerald = Color(0xFF0E7C5F)
-val EmeraldDeep = Color(0xFF0A5C45)
-val Violet = Color(0xFF5B4FE0)
-val VioletSoft = Color(0xFFEAE7FD)
-val Coral = Color(0xFFFF6B4A)
-val CoralSoft = Color(0xFFFFE4DB)
-val Amber = Color(0xFFE08A00)
-val AmberSoft = Color(0xFFFFEDC2)
-val Paper = Color(0xFFFAF8F3)
-val Field = Color(0xFFF2F0E8)
-val Sand = Color(0xFFEDEAE0)
-val Line = Color(0xFFE1DDD0)
-val Muted = Color(0xFF69766F)
-val Muted2 = Color(0xFF97A29D)
-val Mint = Color(0xFFD7F0E3)
+// Paleta "Cápsula" (rediseño): fondo blanco, tinta pizarra y un solo acento.
+// El rojo se reserva para lo que exige atención (reponer, desactivar) y el
+// ámbar para el estado sin conexión.
 
-// Legacy aliases (algunos archivos aun referencian los nombres antiguos)
-val Pine = Emerald
-val Pine2 = Violet
+// Neutros
+val Tinta = Color(0xFF101828)
+val Texto2 = Color(0xFF344054)
+val Texto3 = Color(0xFF475467)
+val Texto4 = Color(0xFF667085)
+val Borde = Color(0xFFD0D5DD)
+val Linea = Color(0xFFEAECF0)
+val LineaSuave = Color(0xFFF2F4F7)
+val Superficie = Color(0xFFF9FAFB)
+val Blanco = Color(0xFFFFFFFF)
 
-// Dark theme: no es la inversa plana de la paleta clara, tiene sus propios tonos
-val InkDark = Color(0xFFEDEAE2)
-val EmeraldDark = Color(0xFF52D9AE)
-val EmeraldContainerDark = Color(0xFF0F4A3A)
-val VioletDark = Color(0xFFBBB0FF)
-val VioletContainerDark = Color(0xFF342C85)
-val CoralDark = Color(0xFFFF9375)
-val AmberDark = Color(0xFFFFC257)
-val PaperDark = Color(0xFF0B1512)
-val FieldDark = Color(0xFF16201B)
-val SandDark = Color(0xFF1B2620)
-val LineDark = Color(0xFF313B35)
-val MutedDark = Color(0xFFA9B3AE)
-val Muted2Dark = Color(0xFF7C8985)
+// Acento y marcadores de cápsula
+val Coral = Color(0xFFE0533D)
+val CoralTinte = Color(0xFFFDEDEA)
+val Turquesa = Color(0xFF0E9384)
+val Azafran = Color(0xFFD98A00)
+val Violeta = Color(0xFF6E56CF)
 
-// Legacy aliases
-val PineDark = EmeraldDark
-val PineContainerDark = EmeraldContainerDark
+// Estados
+val RojoTexto = Color(0xFF9A2E1E)
+val RojoAccion = Color(0xFFB42318)
+val RojoBorde = Color(0xFFFDA29B)
+val Verde = Color(0xFF12B76A)
+val VerdeTinte = Color(0xFFECFDF3)
+val VerdeTexto = Color(0xFF067647)
+val AmbarTinte = Color(0xFFFFFAEB)
+val AmbarBorde = Color(0xFFFEDF89)
+val AmbarBordeFuerte = Color(0xFFFEC84B)
+val AmbarTexto = Color(0xFF7A2E0E)
+val AmbarTexto2 = Color(0xFF93370D)
 
-val OnPrimaryDark = Color(0xFF052017)
-
-val ErrorLight = Color(0xFFC62828)
-val OnErrorLight = Color(0xFFFFFFFF)
-val ErrorDark = Color(0xFFF2B8B5)
-val OnErrorDark = Color(0xFF601410)
+// Tema oscuro: no es la inversa plana, tiene sus propios tonos
+val FondoOscuro = Color(0xFF0C111D)
+val SuperficieOscura = Color(0xFF161B26)
+val CampoOscuro = Color(0xFF1F242F)
+val LineaOscura = Color(0xFF333741)
+val TextoOscuro = Color(0xFFF5F5F6)
+val Texto3Oscuro = Color(0xFF94969C)
