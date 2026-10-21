@@ -1,31 +1,29 @@
 package pe.edu.upeu.pharmamobile
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -45,19 +43,22 @@ import pe.edu.upeu.pharmamobile.domain.model.Permisos
 import pe.edu.upeu.pharmamobile.domain.model.Sesion
 import pe.edu.upeu.pharmamobile.navigation.Screen
 import pe.edu.upeu.pharmamobile.presentation.cliente.ClienteScreen
-import pe.edu.upeu.pharmamobile.presentation.components.PharmaTopBar
+import pe.edu.upeu.pharmamobile.presentation.components.DockNavegacion
+import pe.edu.upeu.pharmamobile.presentation.components.IconoCapsula
+import pe.edu.upeu.pharmamobile.presentation.components.ItemDock
 import pe.edu.upeu.pharmamobile.presentation.config.ConfigScreen
 import pe.edu.upeu.pharmamobile.presentation.inicio.InicioScreen
 import pe.edu.upeu.pharmamobile.presentation.pedido.PedidoScreen
 import pe.edu.upeu.pharmamobile.presentation.producto.ProductoScreen
+import pe.edu.upeu.pharmamobile.presentation.producto.ProductoUiState
 import pe.edu.upeu.pharmamobile.presentation.producto.ProductoViewModel
 import pe.edu.upeu.pharmamobile.presentation.sesion.LoginScreen
 import pe.edu.upeu.pharmamobile.presentation.sesion.SesionViewModel
 import pe.edu.upeu.pharmamobile.presentation.theme.PharmaMobileTheme
 
-private val destinos = listOf(Screen.Inicio, Screen.Productos, Screen.Clientes, Screen.Pedidos, Screen.Config)
+/** Secciones del dock, en orden. Ajustes no está: se abre desde el avatar de Inicio. */
+private val destinosDock = listOf(Screen.Inicio, Screen.Productos, Screen.Pedidos, Screen.Clientes)
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Preview
 fun App() = KoinContext {
@@ -69,6 +70,8 @@ fun App() = KoinContext {
     var alertasStockBajo by remember { mutableStateOf(true) }
     // Al cambiar de usuario se vuelve a Inicio: el nuevo rol puede no tener acceso a la sección anterior.
     var pantallaActual by remember(sesion?.usuario) { mutableStateOf<Screen>(Screen.Inicio) }
+    // Cada toque del "+" del dock incrementa este contador; Inventario abre el formulario al verlo cambiar.
+    var solicitudNuevo by remember(sesion?.usuario) { mutableIntStateOf(0) }
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -77,99 +80,111 @@ fun App() = KoinContext {
     }
 
     PharmaMobileTheme(darkTheme = darkTheme) {
+        val fondo = MaterialTheme.colorScheme.background
         if (sesion == null) {
-            if (sesionUi.restaurando) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+            Box(modifier = Modifier.fillMaxSize().background(fondo).statusBarsPadding()) {
+                if (sesionUi.restaurando) {
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary, modifier = Modifier.align(Alignment.Center))
+                } else {
+                    LoginScreen(
+                        estado = sesionUi,
+                        alCambiarUsuario = sesionViewModel::alCambiarUsuario,
+                        alCambiarClave = sesionViewModel::alCambiarClave,
+                        alIniciar = sesionViewModel::iniciarSesion,
+                        depuracion = depuracion,
+                        alProbarSinToken = { sesionViewModel.probarAcceso("productos") }
+                    )
                 }
-            } else {
-                LoginScreen(
-                    estado = sesionUi,
-                    alCambiarUsuario = sesionViewModel::alCambiarUsuario,
-                    alCambiarClave = sesionViewModel::alCambiarClave,
-                    alIniciar = sesionViewModel::iniciarSesion,
-                    depuracion = depuracion,
-                    alProbarSinToken = { sesionViewModel.probarAcceso("productos") }
-                )
             }
             return@PharmaMobileTheme
         }
-        val destinosVisibles = destinos.filter { puedeVer(it, sesion) }
-        Scaffold(
-            topBar = { PharmaTopBar(seccionActual = pantallaActual.titulo) },
-            snackbarHost = {
-                SnackbarHost(snackbarHostState) { data ->
+
+        // Inicio e Inventario comparten el mismo ViewModel: los indicadores de Inicio
+        // salen de la misma base local que la lista. Sin permiso de catálogo no se crea.
+        val puedeCatalogo = sesion.puede(Permisos.CATALOGO_LEER)
+        val productoViewModel = if (puedeCatalogo) {
+            koinViewModel<ProductoViewModel>(key = "productos-${sesionUi.generacion}")
+        } else null
+        val estadoProductos = productoViewModel?.uiState?.collectAsStateWithLifecycle()?.value ?: ProductoUiState()
+        val puedeEscribir = sesion.puede(Permisos.CATALOGO_ESCRIBIR)
+
+        Box(modifier = Modifier.fillMaxSize().background(fondo).statusBarsPadding()) {
+            when (pantallaActual) {
+                is Screen.Inicio -> InicioScreen(
+                    sesion = sesion,
+                    estado = estadoProductos,
+                    onNavigate = { pantallaActual = it },
+                    onAbrirAjustes = { pantallaActual = Screen.Config },
+                    onSincronizar = { productoViewModel?.sincronizar() }
+                )
+                is Screen.Productos -> if (productoViewModel != null) {
+                    ProductoScreen(
+                        viewModel = productoViewModel,
+                        onSuccess = mostrarExito,
+                        puedeEscribir = puedeEscribir,
+                        solicitudNuevo = solicitudNuevo
+                    )
+                }
+                is Screen.Clientes -> ConMargenDock { ClienteScreen(onSuccess = mostrarExito) }
+                is Screen.Pedidos -> ConMargenDock { PedidoScreen(onSuccess = mostrarExito) }
+                is Screen.Config -> ConfigScreen(
+                    darkTheme = darkTheme,
+                    onDarkThemeChange = { darkTheme = it },
+                    alertasStockBajo = alertasStockBajo,
+                    onAlertasStockBajoChange = { alertasStockBajo = it },
+                    sesion = sesion,
+                    diagnostico = sesionUi.diagnostico,
+                    alProbarClientes = { sesionViewModel.probarAcceso("clientes") },
+                    alCerrarSesion = sesionViewModel::cerrarSesion,
+                    depuracion = depuracion,
+                    alAlterarToken = sesionViewModel::alterarTokenGuardado,
+                    onVolver = { pantallaActual = Screen.Inicio },
+                    guardados = (estadoProductos.fase as? ProductoUiState.FaseInventario.ConProductos)?.productos?.size ?: 0,
+                    porEnviar = estadoProductos.pendientes
+                )
+            }
+
+            Column(modifier = Modifier.align(Alignment.BottomCenter).navigationBarsPadding()) {
+                SnackbarHost(snackbarHostState, modifier = Modifier.padding(horizontal = 16.dp)) { data ->
                     Snackbar(
                         containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = MaterialTheme.colorScheme.onPrimary,
-                        shape = RoundedCornerShape(16.dp),
-                        content = {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    imageVector = Icons.Filled.Check,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onPrimary
-                                )
-                                Text(
-                                    text = data.visuals.message,
-                                    modifier = Modifier.padding(start = 10.dp),
-                                    style = MaterialTheme.typography.labelLarge,
-                                    color = MaterialTheme.colorScheme.onPrimary
-                                )
-                            }
-                        }
-                    )
-                }
-            },
-            bottomBar = {
-                NavigationBar(containerColor = MaterialTheme.colorScheme.background) {
-                    destinosVisibles.forEach { destino ->
-                        NavigationBarItem(
-                            selected = pantallaActual == destino,
-                            onClick = { pantallaActual = destino },
-                            icon = { Icon(iconoPara(destino), contentDescription = null) },
-                            label = { Text(destino.titulo) },
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = MaterialTheme.colorScheme.primary,
-                                selectedTextColor = MaterialTheme.colorScheme.primary,
-                                indicatorColor = MaterialTheme.colorScheme.primaryContainer,
-                                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Filled.Check, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
+                            Text(
+                                text = data.visuals.message,
+                                modifier = Modifier.padding(start = 10.dp),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.onPrimary
                             )
-                        )
+                        }
                     }
                 }
-            }
-        ) { paddingValues ->
-            Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-                when (pantallaActual) {
-                    is Screen.Inicio -> InicioScreen(sesion = sesion, onNavigate = { pantallaActual = it })
-                    is Screen.Productos -> {
-                        val productoViewModel = koinViewModel<ProductoViewModel>(key = "productos-${sesionUi.generacion}")
-                        ProductoScreen(
-                            viewModel = productoViewModel,
-                            onSuccess = mostrarExito,
-                            puedeEscribir = sesion.puede(Permisos.CATALOGO_ESCRIBIR)
-                        )
-                    }
-                    is Screen.Clientes -> ClienteScreen(onSuccess = mostrarExito)
-                    is Screen.Pedidos -> PedidoScreen(onSuccess = mostrarExito)
-                    is Screen.Config -> ConfigScreen(
-                        darkTheme = darkTheme,
-                        onDarkThemeChange = { darkTheme = it },
-                        alertasStockBajo = alertasStockBajo,
-                        onAlertasStockBajoChange = { alertasStockBajo = it },
-                        sesion = sesion,
-                        diagnostico = sesionUi.diagnostico,
-                        alProbarClientes = { sesionViewModel.probarAcceso("clientes") },
-                        alCerrarSesion = sesionViewModel::cerrarSesion,
-                        depuracion = depuracion,
-                        alAlterarToken = sesionViewModel::alterarTokenGuardado
+                // En Ajustes el dock se oculta: se vuelve con la flecha.
+                if (pantallaActual != Screen.Config) {
+                    DockNavegacion(
+                        items = destinosDock.filter { puedeVer(it, sesion) }.map(::itemDock),
+                        seleccionado = pantallaActual.titulo,
+                        onSeleccionar = { id -> destinosDock.firstOrNull { it.titulo == id }?.let { pantallaActual = it } },
+                        onNuevo = if (puedeEscribir && puedeCatalogo) {
+                            {
+                                pantallaActual = Screen.Productos
+                                solicitudNuevo++
+                            }
+                        } else null
                     )
                 }
             }
         }
     }
+}
+
+/** Clientes y Pedidos se desplazan solos; este margen evita que el dock tape su último campo. */
+@Composable
+private fun ConMargenDock(contenido: @Composable () -> Unit) {
+    Box(modifier = Modifier.fillMaxSize().padding(bottom = 92.dp)) { contenido() }
 }
 
 /** Cada sección se ofrece solo si el rol tiene el permiso que el servidor exige; si no, respondería 403. */
@@ -180,10 +195,14 @@ private fun puedeVer(screen: Screen, sesion: Sesion) = when (screen) {
     else -> true
 }
 
-private fun iconoPara(screen: Screen) = when (screen) {
-    is Screen.Inicio -> Icons.Filled.Home
-    is Screen.Productos -> Icons.Filled.ShoppingCart
-    is Screen.Clientes -> Icons.Filled.Person
-    is Screen.Pedidos -> Icons.AutoMirrored.Filled.List
-    is Screen.Config -> Icons.Filled.Settings
+private fun itemDock(screen: Screen) = ItemDock(
+    id = screen.titulo,
+    titulo = if (screen is Screen.Productos) "Inventario" else screen.titulo
+) { color ->
+    when (screen) {
+        is Screen.Productos -> IconoCapsula(color)
+        is Screen.Pedidos -> Icon(Icons.AutoMirrored.Filled.List, contentDescription = null, tint = color)
+        is Screen.Clientes -> Icon(Icons.Filled.Person, contentDescription = null, tint = color)
+        else -> Icon(Icons.Filled.Home, contentDescription = null, tint = color)
+    }
 }
