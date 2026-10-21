@@ -101,7 +101,7 @@ class SesionTest {
     }
 
     @Test
-    fun `expirar borra el token, limpia el estado y deja un aviso`() = runTest {
+    fun `expirar borra el token y limpia el estado y deja un aviso`() = runTest {
         val auth = AuthFalso(guardada = sesionAlmacen)
         val gestor = GestorSesion(auth)
         gestor.restaurar()
