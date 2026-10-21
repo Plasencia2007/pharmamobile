@@ -1,7 +1,7 @@
 package pe.edu.upeu.pharmamobile.presentation.inicio
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,219 +19,185 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
-import org.jetbrains.compose.resources.painterResource
+import kotlin.time.Clock
 import pe.edu.upeu.pharmamobile.domain.model.Permisos
+import pe.edu.upeu.pharmamobile.domain.model.Producto
 import pe.edu.upeu.pharmamobile.domain.model.Sesion
 import pe.edu.upeu.pharmamobile.navigation.Screen
-import pe.edu.upeu.pharmamobile.presentation.theme.Amber
-import pe.edu.upeu.pharmamobile.presentation.theme.AmberSoft
-import pe.edu.upeu.pharmamobile.presentation.theme.Coral
-import pe.edu.upeu.pharmamobile.presentation.theme.CoralSoft
-import pe.edu.upeu.pharmamobile.presentation.theme.Emerald
-import pe.edu.upeu.pharmamobile.presentation.theme.EmeraldDeep
-import pe.edu.upeu.pharmamobile.presentation.theme.Violet
-import pe.edu.upeu.pharmamobile.presentation.theme.VioletSoft
-import pharmamobile.shared.generated.resources.Res
-import pharmamobile.shared.generated.resources.pharmamobile_logo
+import pe.edu.upeu.pharmamobile.presentation.components.Capsula
+import pe.edu.upeu.pharmamobile.presentation.components.EstadoSincronizacion
+import pe.edu.upeu.pharmamobile.presentation.components.IconoCapsula
+import pe.edu.upeu.pharmamobile.presentation.components.colorCapsula
+import pe.edu.upeu.pharmamobile.presentation.producto.ProductoUiState
+import pe.edu.upeu.pharmamobile.presentation.theme.CoralTinte
+import pe.edu.upeu.pharmamobile.presentation.theme.RojoTexto
+import pe.edu.upeu.pharmamobile.presentation.theme.fuenteMono
 
 @Composable
-fun InicioScreen(sesion: Sesion, onNavigate: (Screen) -> Unit) {
-    val ahora = remember { Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()) }
-    val saludo = remember(ahora) { saludoSegunHora(ahora.hour) }
-    val fecha = remember(ahora) { formatearFecha(ahora.dayOfWeek.ordinal, ahora.dayOfMonth, ahora.monthNumber) }
-
-    Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 16.dp)
-                .clip(RoundedCornerShape(28.dp))
-                .background(
-                    Brush.linearGradient(
-                        colors = listOf(EmeraldDeep, Emerald),
-                        start = Offset(0f, 0f),
-                        end = Offset(400f, 400f)
-                    )
-                )
-                .padding(22.dp)
-        ) {
-            Column {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Image(
-                        painter = painterResource(Res.drawable.pharmamobile_logo),
-                        contentDescription = "Logo PharmaMobile",
-                        modifier = Modifier.size(34.dp)
-                    )
-                    Text(
-                        text = fecha.uppercase(),
-                        modifier = Modifier.padding(start = 10.dp),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color.White.copy(alpha = 0.75f)
-                    )
-                }
-                Text(
-                    text = buildAnnotatedString {
-                        append("$saludo,\n")
-                        withStyle(SpanStyle(color = AmberSoft)) {
-                            append(sesion.nombreCompleto.substringBefore(" "))
-                        }
-                    },
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = Color.White,
-                    modifier = Modifier.padding(top = 14.dp)
-                )
-                Text(
-                    text = "Tu inventario, clientes y pedidos en un mismo lugar.",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = Color.White.copy(alpha = 0.82f),
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-            }
-        }
-
-        Text(
-            text = "Accesos directos",
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)
-        )
-
-        Column(
-            modifier = Modifier.padding(horizontal = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            // Solo se ofrecen los atajos a los que el rol tiene permiso: si no, el servidor respondería 403.
-            val atajos = listOfNotNull(
-                if (sesion.puede(Permisos.CATALOGO_LEER)) AtajoInicio(
-                    "Productos", "Registro e inventario", Icons.Filled.ShoppingCart, Emerald,
-                    MaterialTheme.colorScheme.primaryContainer, Screen.Productos
-                ) else null,
-                if (sesion.puede(Permisos.CLIENTES_LEER)) AtajoInicio(
-                    "Clientes", "Administra tu cartera", Icons.Filled.Person, Violet, VioletSoft, Screen.Clientes
-                ) else null,
-                if (sesion.puede(Permisos.VENTAS_LEER)) AtajoInicio(
-                    "Pedidos", "Controla despachos", Icons.AutoMirrored.Filled.List, Amber, AmberSoft, Screen.Pedidos
-                ) else null,
-                if (sesion.puede(Permisos.VENTAS_REGISTRAR)) AtajoInicio(
-                    "Nuevo pedido", "Empieza en 30 s", Icons.Filled.Add, Coral, CoralSoft, Screen.Pedidos
-                ) else null
-            )
-            atajos.chunked(2).forEach { fila ->
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    fila.forEach { atajo ->
-                        Tile(
-                            titulo = atajo.titulo,
-                            descripcion = atajo.descripcion,
-                            icono = atajo.icono,
-                            acento = atajo.acento,
-                            fondoSuave = atajo.fondoSuave,
-                            onClick = { onNavigate(atajo.destino) },
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                    if (fila.size == 1) Spacer(modifier = Modifier.weight(1f))
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(20.dp))
-    }
-}
-
-private class AtajoInicio(
-    val titulo: String,
-    val descripcion: String,
-    val icono: ImageVector,
-    val acento: Color,
-    val fondoSuave: Color,
-    val destino: Screen
-)
-
-@Composable
-private fun Tile(
-    titulo: String,
-    descripcion: String,
-    icono: ImageVector,
-    acento: Color,
-    fondoSuave: Color,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
+fun InicioScreen(
+    sesion: Sesion,
+    estado: ProductoUiState,
+    onNavigate: (Screen) -> Unit,
+    onAbrirAjustes: () -> Unit,
+    onSincronizar: () -> Unit
 ) {
     val colores = MaterialTheme.colorScheme
+    val ahora = remember { Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()) }
+    val fecha = remember(ahora) { formatearFecha(ahora.dayOfWeek.ordinal, ahora.day, ahora.month.number) }
+    val productos = (estado.fase as? ProductoUiState.FaseInventario.ConProductos)?.productos.orEmpty()
+    val activos = productos.count { !it.estaInactivo() }
+    val porReponer = productos.filter { it.requiereReposicion() }.sortedBy { it.stock }
 
     Column(
-        modifier = modifier
-            .height(132.dp)
-            .clip(RoundedCornerShape(20.dp))
-            .background(colores.surface)
-            .background(fondoSuave.copy(alpha = 0.55f))
-            .clickable(onClick = onClick)
-            .padding(16.dp),
-        verticalArrangement = Arrangement.SpaceBetween
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 110.dp),
+        verticalArrangement = Arrangement.spacedBy(22.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(fecha, style = MaterialTheme.typography.bodyMedium, color = colores.onSurfaceVariant)
+                Text("Hola, ${sesion.nombreCompleto.substringBefore(" ")}", style = MaterialTheme.typography.headlineMedium, color = colores.onSurface)
+            }
             Box(
                 modifier = Modifier
-                    .size(38.dp)
+                    .size(44.dp)
                     .clip(CircleShape)
-                    .background(acento),
+                    .background(colores.surfaceContainerHighest)
+                    .clickable(role = Role.Button, onClick = onAbrirAjustes)
+                    .semantics { contentDescription = "Cuenta y ajustes" },
                 contentAlignment = Alignment.Center
             ) {
-                Icon(icono, contentDescription = null, tint = Color.White, modifier = Modifier.size(19.dp))
+                Text(iniciales(sesion.nombreCompleto), style = MaterialTheme.typography.titleSmall, color = colores.onSurface)
             }
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                contentDescription = null,
-                tint = acento.copy(alpha = 0.55f),
-                modifier = Modifier.size(16.dp)
-            )
         }
+
+        EstadoSincronizacion(
+            sincronizando = estado.sincronizando,
+            aviso = estado.avisoRed,
+            pendientes = estado.pendientes,
+            onSincronizar = onSincronizar
+        )
+
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Indicador("Activos", "$activos", Modifier.weight(1f))
+            Indicador("Por reponer", "${porReponer.size}", Modifier.weight(1f), fondo = CoralTinte, colorTexto = RojoTexto)
+            Indicador("Por enviar", "${estado.pendientes}", Modifier.weight(1f))
+        }
+
         Column {
-            Text(titulo, style = MaterialTheme.typography.titleMedium, color = colores.onSurface)
-            Text(
-                descripcion,
-                style = MaterialTheme.typography.bodyMedium,
-                color = colores.onSurfaceVariant,
-                modifier = Modifier.padding(top = 2.dp)
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("Requiere atención", style = MaterialTheme.typography.titleLarge, color = colores.onSurface, modifier = Modifier.weight(1f))
+                TextButton(onClick = { onNavigate(Screen.Productos) }) {
+                    Text("Ver todo", style = MaterialTheme.typography.labelLarge, color = colores.onSurfaceVariant)
+                }
+            }
+            if (porReponer.isEmpty()) {
+                Text("Todo el stock está sobre el mínimo.", style = MaterialTheme.typography.bodyMedium, color = colores.onSurfaceVariant)
+            } else {
+                porReponer.take(4).forEachIndexed { indice, producto ->
+                    FilaReposicion(producto, onClick = { onNavigate(Screen.Productos) })
+                    if (indice < minOf(porReponer.size, 4) - 1) HorizontalDivider(color = colores.outlineVariant)
+                }
+            }
+        }
+
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text("Accesos", style = MaterialTheme.typography.titleLarge, color = colores.onSurface)
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                if (sesion.puede(Permisos.CATALOGO_LEER)) {
+                    Acceso("Inventario", Modifier.weight(1f), onClick = { onNavigate(Screen.Productos) }) { IconoCapsula(it) }
+                }
+                if (sesion.puede(Permisos.VENTAS_LEER)) {
+                    Acceso("Pedidos", Modifier.weight(1f), onClick = { onNavigate(Screen.Pedidos) }) {
+                        Icon(Icons.AutoMirrored.Filled.List, contentDescription = null, tint = it)
+                    }
+                }
+                if (sesion.puede(Permisos.CLIENTES_LEER)) {
+                    Acceso("Clientes", Modifier.weight(1f), onClick = { onNavigate(Screen.Clientes) }) {
+                        Icon(Icons.Filled.Person, contentDescription = null, tint = it)
+                    }
+                }
+            }
         }
     }
 }
 
-private fun saludoSegunHora(hora: Int): String = when (hora) {
-    in 5..11 -> "Buenos días"
-    in 12..18 -> "Buenas tardes"
-    else -> "Buenas noches"
+@Composable
+private fun Indicador(
+    etiqueta: String,
+    valor: String,
+    modifier: Modifier = Modifier,
+    fondo: Color = MaterialTheme.colorScheme.surfaceVariant,
+    colorTexto: Color = MaterialTheme.colorScheme.onSurface
+) {
+    Column(
+        modifier = modifier.clip(RoundedCornerShape(16.dp)).background(fondo).padding(horizontal = 12.dp, vertical = 14.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Text(etiqueta, style = MaterialTheme.typography.bodySmall, color = if (fondo == CoralTinte) colorTexto else MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(valor, style = MaterialTheme.typography.headlineSmall.copy(fontFamily = fuenteMono()), color = colorTexto)
+    }
 }
+
+@Composable
+private fun FilaReposicion(producto: Producto, onClick: () -> Unit) {
+    val colores = MaterialTheme.colorScheme
+    Row(
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Capsula(color = colorCapsula(producto))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(producto.nombre, style = MaterialTheme.typography.titleMedium, color = colores.onSurface, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text("Mínimo ${Producto.STOCK_MINIMO} u.", style = MaterialTheme.typography.bodySmall, color = colores.onSurfaceVariant)
+        }
+        Text("${producto.stock} u.", style = MaterialTheme.typography.titleMedium.copy(fontFamily = fuenteMono()), color = RojoTexto)
+    }
+}
+
+@Composable
+private fun Acceso(titulo: String, modifier: Modifier, onClick: () -> Unit, icono: @Composable (Color) -> Unit) {
+    val colores = MaterialTheme.colorScheme
+    Column(
+        modifier = modifier
+            .height(88.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .border(1.dp, colores.outlineVariant, RoundedCornerShape(16.dp))
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(12.dp),
+        verticalArrangement = Arrangement.SpaceBetween
+    ) {
+        icono(colores.onSurface)
+        Spacer(Modifier.height(4.dp))
+        Text(titulo, style = MaterialTheme.typography.labelLarge, color = colores.onSurface)
+    }
+}
+
+private fun iniciales(nombre: String): String =
+    nombre.split(" ").filter { it.isNotBlank() }.take(2).joinToString("") { it.first().uppercase() }
 
 private val DIAS = listOf("lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo")
 private val MESES = listOf(
