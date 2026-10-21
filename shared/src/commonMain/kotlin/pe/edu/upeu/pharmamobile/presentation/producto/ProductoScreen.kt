@@ -66,13 +66,14 @@ import pe.edu.upeu.pharmamobile.presentation.theme.fuenteMono
 /** Filtros del inventario por estado (la app todavía no guarda la categoría de cada producto). */
 private enum class FiltroInventario(val titulo: String, val cumple: (Producto) -> Boolean) {
     Todos("Todos", { true }),
-    Activos("Activos", { !it.estaInactivo() && !it.requiereReposicion() }),
+    // Igual que el indicador de Inicio: un producto por reponer sigue a la venta.
+    Activos("Activos", { !it.estaInactivo() }),
     PorReponer("Por reponer", { it.requiereReposicion() }),
     Inactivos("Inactivos", { it.estaInactivo() })
 }
 
 private val ANCHO_PRECIO = 72.dp
-private val ANCHO_STOCK = 52.dp
+private val ANCHO_STOCK = 64.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -124,7 +125,7 @@ fun ProductoScreen(
                 Text("Inventario", style = MaterialTheme.typography.headlineMedium, color = colores.onSurface, modifier = Modifier.weight(1f))
                 Text(
                     "${visibles.size} de ${todos.size}",
-                    style = MaterialTheme.typography.bodySmall.copy(fontFamily = fuenteMono()),
+                    style = MaterialTheme.typography.bodySmall,
                     color = colores.onSurfaceVariant,
                     modifier = Modifier.padding(bottom = 6.dp)
                 )

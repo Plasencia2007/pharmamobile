@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -140,7 +141,7 @@ fun LoginScreen(
         if (depuracion) {
             OutlinedButton(
                 onClick = alProbarSinToken,
-                modifier = Modifier.padding(top = 12.dp).fillMaxWidth().height(48.dp),
+                modifier = Modifier.padding(top = 12.dp).fillMaxWidth().heightIn(min = 48.dp),
                 shape = RoundedCornerShape(24.dp)
             ) {
                 Text("Depuración: lanzar petición sin token", style = MaterialTheme.typography.labelLarge, color = colores.onSurface)

@@ -93,7 +93,11 @@ fun EstadoSincronizacion(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(
+                modifier = Modifier.weight(1f),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
                 if (sincronizando) {
                     CircularProgressIndicator(modifier = Modifier.size(14.dp), strokeWidth = 2.dp, color = colores.primary)
                 } else {
@@ -111,7 +115,7 @@ fun EstadoSincronizacion(
                 }
             }
             TextButton(onClick = onSincronizar, enabled = !sincronizando) {
-                Text("Sincronizar", style = MaterialTheme.typography.labelLarge, color = colores.onSurface)
+                Text("Sincronizar", style = MaterialTheme.typography.labelLarge, color = colores.onSurface, softWrap = false)
             }
         }
     }

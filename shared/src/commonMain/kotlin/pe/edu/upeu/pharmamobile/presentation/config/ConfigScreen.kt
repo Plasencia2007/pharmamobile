@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -103,7 +104,7 @@ fun ConfigScreen(
         if (depuracion) {
             OutlinedButton(
                 onClick = alAlterarToken,
-                modifier = Modifier.fillMaxWidth().height(48.dp),
+                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
                 shape = RoundedCornerShape(24.dp)
             ) {
                 Text("Depuración: alterar un carácter del token", style = MaterialTheme.typography.labelLarge, color = colores.onSurface)

@@ -33,6 +33,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 import pe.edu.upeu.pharmamobile.domain.model.Producto
@@ -194,8 +195,13 @@ private fun Contenido(
 @Composable
 private fun Dato(etiqueta: String, valor: String, modifier: Modifier = Modifier) {
     val colores = MaterialTheme.colorScheme
-    Column(modifier = modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    Column(modifier = modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(etiqueta, style = MaterialTheme.typography.bodySmall, color = colores.onSurfaceVariant)
-        Text(valor, style = MaterialTheme.typography.titleSmall.copy(fontFamily = fuenteMono()), color = colores.onSurface, maxLines = 1)
+        Text(
+            valor,
+            style = MaterialTheme.typography.titleSmall.copy(fontFamily = fuenteMono(), fontSize = 13.sp, letterSpacing = (-0.3).sp),
+            color = colores.onSurface,
+            maxLines = 1
+        )
     }
 }

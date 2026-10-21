@@ -97,7 +97,9 @@ fun PharmaField(
             }
             Box(modifier = Modifier.weight(1f).padding(horizontal = 14.dp), contentAlignment = Alignment.CenterStart) {
                 if (value.isEmpty()) {
-                    Text(placeholder, style = estiloTexto, color = colores.onSurfaceVariant.copy(alpha = 0.6f))
+                    // Un ejemplo con letras ("Cantidad") va en la fuente de texto; uno numérico ("0.00"), en mono.
+                    val estiloEjemplo = if (placeholder.any { it.isLetter() }) MaterialTheme.typography.bodyLarge else estiloTexto
+                    Text(placeholder, style = estiloEjemplo, color = colores.onSurfaceVariant.copy(alpha = 0.6f))
                 }
                 BasicTextField(
                     value = value,
