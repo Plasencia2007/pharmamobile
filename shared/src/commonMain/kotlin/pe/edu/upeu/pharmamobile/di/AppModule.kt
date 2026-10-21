@@ -7,7 +7,9 @@ import org.koin.core.module.dsl.viewModel
 import org.koin.core.qualifier.named
 import org.koin.dsl.KoinAppDeclaration
 import org.koin.dsl.module
+import pe.edu.upeu.pharmamobile.data.local.CreadorDeDriver
 import pe.edu.upeu.pharmamobile.data.remote.ProductoApi
+import pe.edu.upeu.pharmamobile.db.PharmaDb
 import pe.edu.upeu.pharmamobile.data.remote.crearHttpClient
 import pe.edu.upeu.pharmamobile.data.repository.AuthRepositorioRest
 import pe.edu.upeu.pharmamobile.data.repository.ProductoRepositorioRest
@@ -36,6 +38,7 @@ import pe.edu.upeu.pharmamobile.presentation.sesion.SesionViewModel
 private const val CATEGORIA_POR_DEFECTO = 1L
 
 val dataModule = module {
+    single { PharmaDb(get<CreadorDeDriver>().crear()) }
     single {
         crearHttpClient(
             engine = get<HttpClientEngine>(),

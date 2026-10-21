@@ -9,6 +9,8 @@ import kotlin.native.Platform
 import org.koin.dsl.module
 import pe.edu.upeu.pharmamobile.data.local.AlmacenSeguro
 import pe.edu.upeu.pharmamobile.data.local.AlmacenSeguroIos
+import pe.edu.upeu.pharmamobile.data.local.CreadorDeDriver
+import pe.edu.upeu.pharmamobile.data.local.CreadorDeDriverIos
 import pe.edu.upeu.pharmamobile.domain.platform.Compartidor
 import pe.edu.upeu.pharmamobile.platform.CompartidorIos
 
@@ -17,5 +19,6 @@ actual val platformModule: Module = module {
     single<HttpClientEngine> { Darwin.create() }
     single<Compartidor> { CompartidorIos() }
     single(named(NOMBRE_DEPURACION)) { Platform.isDebugBinary }
+    single<CreadorDeDriver> { CreadorDeDriverIos() }
     single<AlmacenSeguro> { AlmacenSeguroIos() }
 }
