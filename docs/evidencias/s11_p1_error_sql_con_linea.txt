@@ -1,0 +1,5 @@
+# Punto de control 1: error de SQL provocado a proposito en Producto.sq (FORM en lugar de FROM)
+# 2026-10-21 13:21:03
+C:/Users/jhons/AndroidStudioProjects/PharmaMobile/shared/src/commonMain/sqldelight/pe/edu/upeu/pharmamobile/db/Producto.sq:14:9 ',', <compound operator real>, FROM, GROUP, HAVING, LIMIT, ORDER or WHERE expected, got 'FORM'
+* What went wrong:
+BUILD FAILED in 4s
