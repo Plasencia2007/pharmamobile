@@ -19,3 +19,10 @@ class SincronizarProductosUseCase(
     suspend operator fun invoke(): Result<Unit> =
         ejecutarLlamada { repository.sincronizar() }
 }
+
+/** Instante de la ultima sincronizacion correcta, para decirle al usuario que tan viejos son sus datos. */
+class ObservarUltimaSincronizacionUseCase(
+    private val repository: ProductoRepository
+) {
+    operator fun invoke(): Flow<Long?> = repository.observarUltimaSincronizacion()
+}

@@ -9,7 +9,9 @@ data class ProductoUiState(
     /** Hay una sincronizacion con PharmaSoft en curso (segundo plano; la lista sigue visible). */
     val sincronizando: Boolean = false,
     /** La ultima sincronizacion fallo: se siguen mostrando los datos guardados. */
-    val avisoRed: String? = null
+    val avisoRed: String? = null,
+    /** Ultima sincronizacion correcta (milisegundos epoch); null = este telefono nunca sincronizo. */
+    val ultimaSincronizacion: Long? = null
 ) {
     /** Productos creados o editados en el dispositivo que el servidor todavia no conoce. */
     val pendientes: Int
