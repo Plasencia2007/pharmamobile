@@ -1,0 +1,4 @@
+## Modo avion (13:54:01)
+airplane_mode_on = 1
+ping al backend (10.0.2.2):
+connect: Network is unreachable

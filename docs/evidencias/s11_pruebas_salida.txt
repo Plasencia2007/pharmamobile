@@ -1,0 +1,29 @@
+# Salida de la ejecucion de pruebas: ./gradlew :shared:testAndroidHostTest --rerun  (21-10-2026 14:05)
+
+Pruebas offline-first en commonTest (base SQLite en memoria nueva por prueba) y pruebas relacionadas:
+OK   TokenJwtTest                     un token vigente devuelve el usuario y sus permisos sin los roles  (0.042s)
+OK   TokenJwtTest                     un token mal formado no abre sesion  (0.001s)
+OK   TokenJwtTest                     un token vencido no abre sesion  (0.0s)
+OK   ProductoRepositorioOfflineTest   con red el producto se envia y queda sincronizado con su id real  (0.55s)
+OK   ProductoRepositorioOfflineTest   un producto pendiente se edita y se descarta sin llamar al servidor  (0.035s)
+OK   ProductoRepositorioOfflineTest   dos productos sin red reciben ids locales negativos distintos  (0.023s)
+OK   ProductoRepositorioOfflineTest   lo creado sin red sobrevive a la bajada del servidor y llega al servidor al reconectar  (0.024s)
+OK   ProductoRepositorioOfflineTest   si la subida falla el pendiente se conserva  (0.018s)
+OK   ProductoRepositorioOfflineTest   sincronizar dos veces no vuelve a enviar lo que ya subio  (0.023s)
+OK   ProductoRepositorioOfflineTest   sin red el producto queda pendiente y la pantalla lo ve  (0.013s)
+OK   ProductoRepositorioOfflineTest   obtener lee de la base local sin pedirlo al servidor  (0.017s)
+OK   ProductoRepositorioOfflineTest   sincronizar sube lo pendiente antes de bajar del servidor  (0.021s)
+OK   ProductoRepositorioOfflineTest   reemplazar sincronizados no borra los pendientes  (0.008s)
+OK   ProductoViewModelTest            sincronizacionExitosaLimpiaElAviso  (0.039s)
+OK   ProductoViewModelTest            eliminarProductoLoQuitaDelListado  (0.011s)
+OK   ProductoViewModelTest            repositorioVacioProduceSinProductos  (0.005s)
+OK   ProductoViewModelTest            eliminarProductoFallidoDejaOperacionFallidaSinTocarElListado  (0.005s)
+OK   ProductoViewModelTest            registrarActualizaLaListaSinPedirlaDeNuevo  (0.006s)
+OK   ProductoViewModelTest            repositorioConProductosProduceConProductos  (0.003s)
+OK   ProductoViewModelTest            actualizarProductoRecargaElListadoConLosNuevosDatos  (0.007s)
+OK   ProductoViewModelTest            sincronizacionSinRedMuestraAvisoYConservaLosDatosGuardados  (0.004s)
+OK   ProductoViewModelTest            errorDeValidacionDelServidorDejaMensajesEnFormularioSinCambiarFase  (0.007s)
+OK   ProductoViewModelTest            registroConPrecioCeroDejaErrorEnFormularioSinLlamarAlRepositorio  (0.004s)
+
+TOTAL del proyecto: 43 pruebas, 0 fallos
+BUILD SUCCESSFUL

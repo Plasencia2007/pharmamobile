@@ -1,0 +1,21 @@
+## S3 · producto registrado SIN conexion (id negativo y pendiente = 1)  (13:56:42)
+id     nombre                   precio   stock  activo  pendiente
+13     Alcohol en Gel 500ml     8.5      200    1       0
+3      Amoxicilina 500mg        22.0     3      1       0
+6      Azitromicina 500mg       28.0     30     1       0
+8      Cefalexina 500mg         24.3     0      0       0
+7      Ciprofloxacino 500mg     19.5     50     1       0
+10     Complejo B               16.9     70     1       0
+5      Diclofenaco 50mg         9.8      45     0       0
+19     Ibuprofeno_JWT           9.5      40     1       0
+-1     Ibuprofeno_Offline       4.5      20     1       1
+16     Jeringas Descartables x5 6.0      0      0       0
+14     Mascarillas KN95 x10     18.0     150    1       0
+11     Multivitaminico Senior   35.0     4      1       0
+4      Naproxeno 250mg          12.0     80     1       0
+12     Omega 3 1000mg           30.5     25     1       0
+1      Paracetamol 500mg        15.5     100    0       0
+15     Termometro Digital       25.0     2      1       0
+18     Vitamina                 22.0     40     0       0
+9      Vitamina C 1000mg        14.0     120    1       0
+filas: 18  pendientes: 1

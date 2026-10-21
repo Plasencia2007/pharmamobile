@@ -1,0 +1,3 @@
+## PharmaSoft apagado (14:03:23)
+curl http://localhost:8082/api/health -> 000 (000 = sin respuesta)
+procesos escuchando en 8082: 0

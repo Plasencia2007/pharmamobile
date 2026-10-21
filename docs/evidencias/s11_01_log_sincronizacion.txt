@@ -1,0 +1,2 @@
+10-21 18:53:36.866  5499  5499 I System.out: HttpClient: REQUEST: http://10.0.2.2:8082/api/v1/productos?pagina=0&tamanio=100
+10-21 18:53:37.543  5499  5499 I System.out: HttpClient: RESPONSE: 200 

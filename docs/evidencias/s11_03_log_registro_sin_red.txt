@@ -1,0 +1,2 @@
+10-21 18:56:35.524  5929  5929 I System.out: HttpClient: REQUEST: http://10.0.2.2:8082/api/v1/productos
+10-21 18:56:35.634  5929  5929 I System.out: HttpClient: REQUEST http://10.0.2.2:8082/api/v1/productos failed with exception: java.net.ConnectException: Failed to connect to /10.0.2.2:8082

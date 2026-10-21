@@ -1,0 +1,4 @@
+15     Termometro Digital       25.0     2      1       0
+18     Vitamina                 22.0     40     0       0
+9      Vitamina C 1000mg        14.0     120    1       0
+filas: 18  pendientes: 1

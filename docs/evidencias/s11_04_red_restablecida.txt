@@ -1,0 +1,5 @@
+## Modo avion desactivado (13:58:07)
+airplane_mode_on = 0
+--- 10.0.2.2 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 1002ms
+rtt min/avg/max/mdev = 0.977/2.031/3.086/1.055 ms

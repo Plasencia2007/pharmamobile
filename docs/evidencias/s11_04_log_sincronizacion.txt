@@ -1,0 +1,8 @@
+10-21 18:58:12.317  6570  6570 I System.out: HttpClient: REQUEST: http://10.0.2.2:8082/api/v1/productos
+10-21 18:58:12.317  6570  6570 I System.out: METHOD: POST
+10-21 18:58:13.479  6570  6570 I System.out: HttpClient: RESPONSE: 201 
+10-21 18:58:13.479  6570  6570 I System.out: METHOD: POST
+10-21 18:58:13.504  6570  6570 I System.out: HttpClient: REQUEST: http://10.0.2.2:8082/api/v1/productos?pagina=0&tamanio=100
+10-21 18:58:13.504  6570  6570 I System.out: METHOD: GET
+10-21 18:58:13.565  6570  6570 I System.out: HttpClient: RESPONSE: 200 
+10-21 18:58:13.565  6570  6570 I System.out: METHOD: GET
