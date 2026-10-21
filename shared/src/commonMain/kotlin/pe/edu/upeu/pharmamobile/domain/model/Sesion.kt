@@ -6,7 +6,13 @@ data class Sesion(
     val token: String,
     val usuario: String,
     val nombreCompleto: String,
-    val permisos: Set<String>
+    val permisos: Set<String>,
+    /**
+     * El token ya vencio pero no hay red para renovarlo (actividad autonoma 11,
+     * escenario 5): la app abre en modo consulta con los datos guardados y la
+     * primera peticion al reconectar recibe 401 y lleva al inicio de sesion.
+     */
+    val vencida: Boolean = false
 ) {
     fun puede(permiso: String): Boolean = permiso in permisos
 }

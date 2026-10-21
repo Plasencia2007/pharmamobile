@@ -58,9 +58,11 @@ class AuthRepositorioRest(
                     cerrarSesion()
                     null
                 }
-                // Offline-first: sin conexion la app abre igual, con la sesion que dice el propio token
-                // (si ya vencio, devuelve null y se pide iniciar sesion). El servidor valida cada peticion.
-                ErrorSesion.SinConexion -> sesionDesdeToken(token, Clock.System.now().epochSeconds)
+                // Offline-first: sin conexion la app abre igual, con la sesion que dice el propio token.
+                // Aunque ya haya vencido: sin red no hay forma de iniciar sesion, y mostrar los datos
+                // guardados es mas util que un login inservible. El servidor sigue validando cada
+                // peticion: al reconectar responde 401 y el GestorSesion lleva al inicio de sesion.
+                ErrorSesion.SinConexion -> sesionDesdeToken(token, Clock.System.now().epochSeconds, aceptarVencido = true)
                 else -> null
             }
         }

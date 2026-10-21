@@ -130,7 +130,7 @@ fun EstadoSincronizacion(
                         when {
                             sincronizando -> "Sincronizando…"
                             ultimaSincronizacion == null -> "Aún sin sincronizar"
-                            else -> "Sincronizado con PharmaSoft"
+                            else -> "Sincronizado"
                         },
                         style = MaterialTheme.typography.labelLarge,
                         color = colores.onSurface

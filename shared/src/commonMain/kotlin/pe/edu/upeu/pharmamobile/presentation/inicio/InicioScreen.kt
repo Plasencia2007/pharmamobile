@@ -49,6 +49,7 @@ import pe.edu.upeu.pharmamobile.presentation.components.EstadoSincronizacion
 import pe.edu.upeu.pharmamobile.presentation.components.IconoCapsula
 import pe.edu.upeu.pharmamobile.presentation.components.colorCapsula
 import pe.edu.upeu.pharmamobile.presentation.producto.ProductoUiState
+import pe.edu.upeu.pharmamobile.presentation.theme.AmbarTexto2
 import pe.edu.upeu.pharmamobile.presentation.theme.CoralTinte
 import pe.edu.upeu.pharmamobile.presentation.theme.RojoTexto
 import pe.edu.upeu.pharmamobile.presentation.theme.fuenteMono
@@ -100,6 +101,16 @@ fun InicioScreen(
             ultimaSincronizacion = estado.ultimaSincronizacion,
             onSincronizar = onSincronizar
         )
+
+        if (sesion.vencida) {
+            // Escenario 5: token caducado y sin red. Se consulta lo guardado; al reconectar,
+            // la primera peticion recibe 401 y la app pide iniciar sesion de nuevo.
+            Text(
+                "Tu sesión venció. Puedes consultar los datos guardados; al recuperar la conexión te pediremos iniciar sesión otra vez.",
+                style = MaterialTheme.typography.bodySmall,
+                color = AmbarTexto2
+            )
+        }
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Indicador("Activos", "$activos", Modifier.weight(1f))
