@@ -97,6 +97,7 @@ fun InicioScreen(
             sincronizando = estado.sincronizando,
             aviso = estado.avisoRed,
             pendientes = estado.pendientes,
+            ultimaSincronizacion = estado.ultimaSincronizacion,
             onSincronizar = onSincronizar
         )
 

@@ -139,6 +139,7 @@ fun ProductoScreen(
                 sincronizando = uiState.sincronizando,
                 aviso = uiState.avisoRed,
                 pendientes = uiState.pendientes,
+                ultimaSincronizacion = uiState.ultimaSincronizacion,
                 onSincronizar = viewModel::sincronizar,
                 modifier = Modifier.padding(top = 12.dp)
             )
@@ -186,7 +187,14 @@ fun ProductoScreen(
                 }
             }
             is ProductoUiState.FaseInventario.SinProductos -> item {
-                TextoVacio("Aún no hay productos. Registra el primero con el botón +.")
+                // Primera apertura sin red: no es un error, solo no hay nada que mostrar todavía.
+                TextoVacio(
+                    if (uiState.ultimaSincronizacion == null) {
+                        "Este teléfono aún no tiene el inventario. Conéctate a internet y pulsa Sincronizar para descargarlo."
+                    } else {
+                        "Aún no hay productos. Registra el primero con el botón +."
+                    }
+                )
             }
             is ProductoUiState.FaseInventario.ConProductos -> {
                 if (visibles.isEmpty()) {

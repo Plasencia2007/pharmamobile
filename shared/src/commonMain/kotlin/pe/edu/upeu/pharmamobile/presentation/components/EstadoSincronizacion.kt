@@ -20,10 +20,14 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
+import pe.edu.upeu.pharmamobile.presentation.producto.describirAntiguedad
 import pe.edu.upeu.pharmamobile.presentation.theme.AmbarBorde
 import pe.edu.upeu.pharmamobile.presentation.theme.AmbarBordeFuerte
 import pe.edu.upeu.pharmamobile.presentation.theme.AmbarTexto
@@ -31,6 +35,7 @@ import pe.edu.upeu.pharmamobile.presentation.theme.AmbarTexto2
 import pe.edu.upeu.pharmamobile.presentation.theme.AmbarTinte
 import pe.edu.upeu.pharmamobile.presentation.theme.Blanco
 import pe.edu.upeu.pharmamobile.presentation.theme.Verde
+import kotlin.time.Clock
 
 /**
  * Estado de la sincronización con PharmaSoft. Con red es una fila discreta;
@@ -41,10 +46,19 @@ fun EstadoSincronizacion(
     sincronizando: Boolean,
     aviso: String?,
     pendientes: Int,
+    ultimaSincronizacion: Long?,
     onSincronizar: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val colores = MaterialTheme.colorScheme
+    // "hace 2 minutos" envejece aunque nada cambie: se recalcula cada 30 s.
+    val ahora by produceState(Clock.System.now().toEpochMilliseconds(), ultimaSincronizacion) {
+        while (true) {
+            value = Clock.System.now().toEpochMilliseconds()
+            delay(30_000)
+        }
+    }
+    val antiguedad = describirAntiguedad(ultimaSincronizacion, ahora)
     val textoPendientes = when (pendientes) {
         0 -> null
         1 -> "1 cambio se enviará al reconectar."
@@ -65,7 +79,12 @@ fun EstadoSincronizacion(
                 Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text("Sin conexión con PharmaSoft", style = MaterialTheme.typography.titleSmall, color = AmbarTexto)
                     Text(
-                        listOfNotNull("Muestras los datos guardados.", textoPendientes).joinToString(" "),
+                        listOfNotNull(
+                            if (ultimaSincronizacion == null) "Todavía no hay datos guardados en este teléfono."
+                            else "Muestras los datos guardados.",
+                            "$antiguedad.",
+                            textoPendientes
+                        ).joinToString(" "),
                         style = MaterialTheme.typography.bodySmall,
                         color = AmbarTexto2
                     )
@@ -101,14 +120,22 @@ fun EstadoSincronizacion(
                 if (sincronizando) {
                     CircularProgressIndicator(modifier = Modifier.size(14.dp), strokeWidth = 2.dp, color = colores.primary)
                 } else {
-                    Box(Modifier.size(8.dp).clip(RoundedCornerShape(4.dp)).background(Verde))
+                    Box(
+                        Modifier.size(8.dp).clip(RoundedCornerShape(4.dp))
+                            .background(if (ultimaSincronizacion != null) Verde else colores.outline)
+                    )
                 }
                 Column {
                     Text(
-                        if (sincronizando) "Sincronizando…" else "Sincronizado con PharmaSoft",
+                        when {
+                            sincronizando -> "Sincronizando…"
+                            ultimaSincronizacion == null -> "Aún sin sincronizar"
+                            else -> "Sincronizado con PharmaSoft"
+                        },
                         style = MaterialTheme.typography.labelLarge,
                         color = colores.onSurface
                     )
+                    Text(antiguedad, style = MaterialTheme.typography.bodySmall, color = colores.onSurfaceVariant)
                     if (textoPendientes != null) {
                         Text(textoPendientes, style = MaterialTheme.typography.bodySmall, color = colores.onSurfaceVariant)
                     }
