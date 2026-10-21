@@ -33,6 +33,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigationevent.NavigationEventInfo
+import androidx.navigationevent.compose.NavigationBackHandler
+import androidx.navigationevent.compose.rememberNavigationEventState
 import kotlinx.coroutines.launch
 import org.koin.compose.KoinContext
 import org.koin.compose.koinInject
@@ -107,6 +110,14 @@ fun App() = KoinContext {
         } else null
         val estadoProductos = productoViewModel?.uiState?.collectAsStateWithLifecycle()?.value ?: ProductoUiState()
         val puedeEscribir = sesion.puede(Permisos.CATALOGO_ESCRIBIR)
+
+        // Atrás del sistema: desde cualquier sección (Ajustes incluido) se vuelve a Inicio;
+        // en Inicio no se intercepta y el sistema cierra la app como de costumbre.
+        NavigationBackHandler(
+            state = rememberNavigationEventState(NavigationEventInfo.None),
+            isBackEnabled = pantallaActual != Screen.Inicio,
+            onBackCompleted = { pantallaActual = Screen.Inicio }
+        )
 
         Box(modifier = Modifier.fillMaxSize().background(fondo).statusBarsPadding()) {
             when (pantallaActual) {
