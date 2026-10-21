@@ -237,6 +237,51 @@ cabecera `Authorization` a mano.
 registros de Ktor con la cabecera saneada, comprobación del almacén cifrado
 y matriz de permisos ejecutada contra el servidor).
 
+### Persistencia offline-first
+
+Desde la sesión 11 la interfaz **lee siempre de una base local** (SQLDelight) y
+la red pasa a ser un proceso de segundo plano cuya única misión es mantener esa
+base al día. La app abre y lista productos aunque PharmaSoft esté apagado.
+
+| Pieza | Dónde | Qué hace |
+|---|---|---|
+| `Producto.sq` | `commonMain/sqldelight/.../db` | Tabla `producto` con la marca `pendiente` y las consultas; SQLDelight genera `PharmaDb` y valida el SQL al compilar |
+| `CreadorDeDriver` | `commonMain/data/local` | Interfaz del driver; `CreadorDeDriverAndroid` (`AndroidSqliteDriver`) y `CreadorDeDriverIos` (`NativeSqliteDriver`, solo compila) se registran en cada `platformModule` |
+| `ProductoLocal` | `commonMain/data/local` | Consultas y traducción fila ↔ dominio. No importa nada de Ktor ni de los DTO |
+| `ProductoRepository` | `commonMain/domain` | `observar(): Flow`, `registrar`, `sincronizar()` (más `obtener`, `actualizar` y `eliminar`) |
+| `ProductoRepositorioOffline` | `commonMain/data/repository` | Implementación: escribe en local, sube lo pendiente y después baja del servidor |
+| `ProductoViewModel` | `commonMain/presentation` | Se suscribe una vez a `observar()` y sincroniza en segundo plano; ya no recarga la lista a mano |
+
+**Reglas que se cumplen**
+
+- **Primero subir, después bajar.** `sincronizar()` envía lo pendiente y luego
+  trae la lista del servidor. Al revés, la bajada borraría lo creado sin red.
+- **Ids locales negativos.** Un producto creado sin red recibe un id negativo
+  (`-1`, `-2`…): un id 0 podría chocar con uno del servidor.
+- **`borrarSincronizados` solo borra `pendiente = 0`** y todo el reemplazo va en
+  una transacción: sin ella, el `Flow` emite una vez por fila y la lista parpadea.
+- **Un producto que el servidor ya aceptó se borra de la tabla local** antes de
+  traer la lista. La guía no lo hace y, tal como está escrita, el pendiente
+  quedaría marcado y volvería a enviarse en cada sincronización (duplicados);
+  hay una prueba que lo cubre.
+- Un fallo de red no tumba la operación local: el producto queda pendiente
+  («Pendiente de enviar») y la pantalla muestra «Sin conexión: mostrando datos
+  guardados».
+
+**Límites declarados.** Crear y editar un producto *pendiente* funciona sin red;
+editar o eliminar un producto *ya sincronizado* sí necesita conexión (queda fuera
+del alcance de la guía). Si el servidor rechaza un pendiente, la sincronización
+se detiene y se avisa. El driver de iOS solo se compiló: no hay Mac.
+
+**Pruebas** (`./gradlew :shared:testAndroidHostTest`): las pruebas offline viven en
+`commonTest` y usan una base SQLite en memoria nueva por prueba (JDBC en la JVM,
+driver nativo en iOS) y un servidor simulado con `ktor-client-mock`; cubren el
+camino con red, el camino sin red, el orden subir-bajar y la ausencia de duplicados.
+
+**Versión de SQLDelight.** La guía indica 2.1.0, pero con AGP 9 (plugin
+`com.android.kotlin.multiplatform.library`) esa versión rompe el script de Gradle
+(el bloque `android {}` deja de resolverse); se usa 2.4.1.
+
 ---
 
 Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
