@@ -10,22 +10,26 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
+/** Botón principal en forma de píldora, en tinta. */
 @Composable
 fun FormButton(
     text: String,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
 ) {
     Button(
         onClick = onClick,
-        modifier = modifier.fillMaxWidth().height(54.dp),
-        shape = RoundedCornerShape(16.dp),
+        enabled = enabled,
+        modifier = modifier.fillMaxWidth().height(52.dp),
+        shape = RoundedCornerShape(26.dp),
         colors = ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.primary,
             contentColor = MaterialTheme.colorScheme.onPrimary
         )
     ) {
-        Text(text, style = MaterialTheme.typography.labelLarge)
+        Text(text, style = MaterialTheme.typography.titleSmall.copy(fontSize = 16.sp))
     }
 }
