@@ -77,6 +77,9 @@ kotlin {
             implementation(libs.ktor.client.darwin)
             implementation(libs.sqldelight.native)
         }
+        getByName("androidHostTest").dependencies {
+            implementation(libs.sqldelight.jvm)
+        }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
             implementation(libs.kotlinx.coroutines.test)
