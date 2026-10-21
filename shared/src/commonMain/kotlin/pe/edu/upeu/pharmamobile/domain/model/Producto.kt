@@ -5,7 +5,9 @@ data class Producto(
     val nombre: String,
     val precio: Double,
     val stock: Int,
-    val activo: Boolean = true
+    val activo: Boolean = true,
+    /** Creado o modificado en el dispositivo y todavia desconocido para el servidor (offline-first). */
+    val pendiente: Boolean = false
 ) {
     companion object {
         const val STOCK_MINIMO = 5
