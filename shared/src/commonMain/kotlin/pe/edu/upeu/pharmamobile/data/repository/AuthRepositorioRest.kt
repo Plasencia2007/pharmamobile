@@ -12,11 +12,13 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import kotlinx.coroutines.CancellationException
 import kotlinx.io.IOException
+import kotlin.time.Clock
 import pe.edu.upeu.pharmamobile.data.local.AlmacenSeguro
 import pe.edu.upeu.pharmamobile.data.remote.dto.LoginRequestDto
 import pe.edu.upeu.pharmamobile.data.remote.dto.LoginResponseDto
 import pe.edu.upeu.pharmamobile.data.remote.dto.UsuarioActualDto
 import pe.edu.upeu.pharmamobile.data.remote.mapearErrorSesion
+import pe.edu.upeu.pharmamobile.data.remote.sesionDesdeToken
 import pe.edu.upeu.pharmamobile.domain.model.Credenciales
 import pe.edu.upeu.pharmamobile.domain.model.ErrorSesion
 import pe.edu.upeu.pharmamobile.domain.model.ErrorSesionException
@@ -51,8 +53,16 @@ class AuthRepositorioRest(
         return try {
             llamar<UsuarioActualDto>(enLogin = false) { cliente.get("auth/me").body() }.aSesion(token)
         } catch (e: ErrorSesionException) {
-            if (e.error == ErrorSesion.SesionExpirada) cerrarSesion()
-            null
+            when (e.error) {
+                ErrorSesion.SesionExpirada -> {
+                    cerrarSesion()
+                    null
+                }
+                // Offline-first: sin conexion la app abre igual, con la sesion que dice el propio token
+                // (si ya vencio, devuelve null y se pide iniciar sesion). El servidor valida cada peticion.
+                ErrorSesion.SinConexion -> sesionDesdeToken(token, Clock.System.now().epochSeconds)
+                else -> null
+            }
         }
     }
 
