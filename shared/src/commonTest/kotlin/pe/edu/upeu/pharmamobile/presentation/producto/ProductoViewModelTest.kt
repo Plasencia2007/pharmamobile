@@ -2,6 +2,8 @@ package pe.edu.upeu.pharmamobile.presentation.producto
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -13,8 +15,9 @@ import pe.edu.upeu.pharmamobile.domain.model.Producto
 import pe.edu.upeu.pharmamobile.domain.repository.ProductoRepository
 import pe.edu.upeu.pharmamobile.domain.usecase.ActualizarProductoUseCase
 import pe.edu.upeu.pharmamobile.domain.usecase.EliminarProductoUseCase
-import pe.edu.upeu.pharmamobile.domain.usecase.ListarProductosUseCase
+import pe.edu.upeu.pharmamobile.domain.usecase.ObservarProductosUseCase
 import pe.edu.upeu.pharmamobile.domain.usecase.RegistrarProductoUseCase
+import pe.edu.upeu.pharmamobile.domain.usecase.SincronizarProductosUseCase
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -31,12 +34,13 @@ import kotlin.test.assertTrue
  */
 private class FakeProductoRepository(
     productosIniciales: List<Producto> = emptyList(),
-    private val fallarAlListar: Boolean = false,
+    private val fallarAlSincronizar: Boolean = false,
     private val fallarAlEliminar: Boolean = false,
     private val errorValidacionAlRegistrar: Map<String, String>? = null
 ) : ProductoRepository {
 
-    private val productos = productosIniciales.toMutableList()
+    // Como la base local: una fuente que emite de nuevo con cada escritura.
+    private val productos = MutableStateFlow(productosIniciales)
 
     var registrarLlamadas = 0
         private set
@@ -44,37 +48,41 @@ private class FakeProductoRepository(
         private set
     var eliminarLlamadas = 0
         private set
+    var sincronizarLlamadas = 0
+        private set
+
+    override fun observar(): Flow<List<Producto>> = productos
 
     override suspend fun registrar(producto: Producto): Producto {
         if (errorValidacionAlRegistrar != null) {
             throw ErrorApiException(ErrorApi.Validacion(errorValidacionAlRegistrar))
         }
         registrarLlamadas++
-        val conId = producto.copy(id = (productos.maxOfOrNull { it.id } ?: 0L) + 1)
-        productos.add(conId)
+        val conId = producto.copy(id = (productos.value.maxOfOrNull { it.id } ?: 0L) + 1)
+        productos.value = productos.value + conId
         return conId
     }
 
-    override suspend fun listar(): List<Producto> {
-        if (fallarAlListar) throw IOException("Fallo simulado del repositorio")
-        return productos.toList()
+    override suspend fun sincronizar() {
+        sincronizarLlamadas++
+        if (fallarAlSincronizar) throw IOException("Fallo simulado de red")
     }
 
     override suspend fun obtener(id: Long): Producto =
-        productos.find { it.id == id } ?: throw NoSuchElementException("Producto $id no encontrado")
+        productos.value.find { it.id == id } ?: throw NoSuchElementException("Producto $id no encontrado")
 
     override suspend fun actualizar(producto: Producto): Producto {
         actualizarLlamadas++
-        val indice = productos.indexOfFirst { it.id == producto.id }
+        val indice = productos.value.indexOfFirst { it.id == producto.id }
         require(indice >= 0) { "Producto ${producto.id} no encontrado" }
-        productos[indice] = producto
+        productos.value = productos.value.toMutableList().also { it[indice] = producto }
         return producto
     }
 
     override suspend fun eliminar(id: Long) {
         if (fallarAlEliminar) throw IOException("Fallo simulado al eliminar")
         eliminarLlamadas++
-        productos.removeAll { it.id == id }
+        productos.value = productos.value.filterNot { it.id == id }
     }
 }
 
@@ -94,7 +102,8 @@ class ProductoViewModelTest {
     }
 
     private fun viewModelCon(fake: FakeProductoRepository) = ProductoViewModel(
-        listarProductosUseCase = ListarProductosUseCase(fake),
+        observarProductosUseCase = ObservarProductosUseCase(fake),
+        sincronizarProductosUseCase = SincronizarProductosUseCase(fake),
         registrarProductoUseCase = RegistrarProductoUseCase(fake),
         actualizarProductoUseCase = ActualizarProductoUseCase(fake),
         eliminarProductoUseCase = EliminarProductoUseCase(fake)
@@ -128,13 +137,47 @@ class ProductoViewModelTest {
     }
 
     @Test
-    fun repositorioQueLanzaExcepcionProduceError() = runTest {
-        val fake = FakeProductoRepository(fallarAlListar = true)
+    fun sincronizacionSinRedMuestraAvisoYConservaLosDatosGuardados() = runTest {
+        val productos = listOf(Producto(id = 1L, nombre = "Paracetamol", precio = 15.50, stock = 100))
+        val fake = FakeProductoRepository(productosIniciales = productos, fallarAlSincronizar = true)
         val viewModel = viewModelCon(fake)
 
         dispatcher.scheduler.advanceUntilIdle()
 
-        assertTrue(viewModel.uiState.value.fase is ProductoUiState.FaseInventario.Error)
+        val estado = viewModel.uiState.value
+        assertEquals("Sin conexión: mostrando datos guardados", estado.avisoRed)
+        assertFalse(estado.sincronizando)
+        val fase = estado.fase
+        assertTrue(fase is ProductoUiState.FaseInventario.ConProductos)
+        assertEquals(1, fase.productos.size)
+    }
+
+    @Test
+    fun sincronizacionExitosaLimpiaElAviso() = runTest {
+        val fake = FakeProductoRepository()
+        val viewModel = viewModelCon(fake)
+
+        dispatcher.scheduler.advanceUntilIdle()
+
+        assertNull(viewModel.uiState.value.avisoRed)
+        assertEquals(1, fake.sincronizarLlamadas)
+    }
+
+    @Test
+    fun registrarActualizaLaListaSinPedirlaDeNuevo() = runTest {
+        val fake = FakeProductoRepository()
+        val viewModel = viewModelCon(fake)
+        dispatcher.scheduler.advanceUntilIdle()
+        val sincronizacionesAntes = fake.sincronizarLlamadas
+
+        viewModel.registrarProducto(nombre = "Ibuprofeno", precio = "4.5", stock = "20")
+        dispatcher.scheduler.advanceUntilIdle()
+
+        val fase = viewModel.uiState.value.fase
+        assertTrue(fase is ProductoUiState.FaseInventario.ConProductos)
+        assertEquals("Ibuprofeno", fase.productos.single().nombre)
+        // La lista cambio porque el Flow emitio, no porque nadie la recargara.
+        assertEquals(sincronizacionesAntes, fake.sincronizarLlamadas)
     }
 
     @Test

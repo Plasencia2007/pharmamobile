@@ -53,6 +53,7 @@ import pe.edu.upeu.pharmamobile.presentation.components.PharmaChip
 import pe.edu.upeu.pharmamobile.presentation.components.PharmaField
 import pe.edu.upeu.pharmamobile.presentation.detalle.DetalleProductoSheet
 import pe.edu.upeu.pharmamobile.presentation.theme.Amber
+import pe.edu.upeu.pharmamobile.presentation.theme.AmberSoft
 import pe.edu.upeu.pharmamobile.presentation.theme.Coral
 import pe.edu.upeu.pharmamobile.presentation.theme.Emerald
 
@@ -135,6 +136,14 @@ fun ProductoScreen(
             }
         }
 
+        BannerSincronizacion(
+            sincronizando = uiState.sincronizando,
+            aviso = uiState.avisoRed,
+            pendientes = uiState.pendientes,
+            onSincronizar = viewModel::sincronizar,
+            modifier = Modifier.padding(top = 12.dp)
+        )
+
         if (mensajeOperacionFallida != null) {
             Text(
                 text = mensajeOperacionFallida,
@@ -170,13 +179,6 @@ fun ProductoScreen(
                         text = "Aún no hay productos registrados.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                is ProductoUiState.FaseInventario.Error -> {
-                    Text(
-                        text = fase.mensaje,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.error
                     )
                 }
                 is ProductoUiState.FaseInventario.ConProductos -> {
@@ -455,6 +457,14 @@ private fun ProductoInventarioItem(
         }
         Column(horizontalAlignment = Alignment.End) {
             EstadoBadge(producto)
+            if (producto.pendiente) {
+                Text(
+                    text = "Pendiente de enviar",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Amber,
+                    modifier = Modifier.padding(top = 2.dp)
+                )
+            }
             if (procesando) {
                 Box(modifier = Modifier.size(40.dp), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(
@@ -510,4 +520,40 @@ internal fun EstadoBadge(producto: Producto) {
             .background(color, RoundedCornerShape(999.dp))
             .padding(horizontal = 12.dp, vertical = 6.dp)
     )
+}
+
+/** Estado de la sincronizacion en segundo plano: la lista de abajo nunca depende de ella. */
+@Composable
+private fun BannerSincronizacion(
+    sincronizando: Boolean,
+    aviso: String?,
+    pendientes: Int,
+    onSincronizar: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val colores = MaterialTheme.colorScheme
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(if (aviso != null) AmberSoft else colores.surface, RoundedCornerShape(14.dp))
+            .padding(horizontal = 14.dp, vertical = 6.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            when {
+                sincronizando -> Text("Sincronizando…", style = MaterialTheme.typography.bodyMedium, color = colores.onSurfaceVariant)
+                aviso != null -> Text(aviso, style = MaterialTheme.typography.bodyMedium, color = Color(0xFF6B4300))
+                else -> Text("Datos al día", style = MaterialTheme.typography.bodyMedium, color = colores.onSurfaceVariant)
+            }
+            if (pendientes > 0) {
+                Text(
+                    text = if (pendientes == 1) "1 producto pendiente de enviar" else "$pendientes productos pendientes de enviar",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Amber
+                )
+            }
+        }
+        TextButton(onClick = onSincronizar, enabled = !sincronizando) { Text("Sincronizar") }
+    }
 }

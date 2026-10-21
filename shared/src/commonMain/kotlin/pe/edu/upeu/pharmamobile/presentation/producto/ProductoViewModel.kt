@@ -13,12 +13,14 @@ import pe.edu.upeu.pharmamobile.domain.error.ErrorApiException
 import pe.edu.upeu.pharmamobile.domain.model.Producto
 import pe.edu.upeu.pharmamobile.domain.usecase.ActualizarProductoUseCase
 import pe.edu.upeu.pharmamobile.domain.usecase.EliminarProductoUseCase
-import pe.edu.upeu.pharmamobile.domain.usecase.ListarProductosUseCase
+import pe.edu.upeu.pharmamobile.domain.usecase.ObservarProductosUseCase
 import pe.edu.upeu.pharmamobile.domain.usecase.ProductoValidationException
 import pe.edu.upeu.pharmamobile.domain.usecase.RegistrarProductoUseCase
+import pe.edu.upeu.pharmamobile.domain.usecase.SincronizarProductosUseCase
 
 class ProductoViewModel(
-    private val listarProductosUseCase: ListarProductosUseCase,
+    private val observarProductosUseCase: ObservarProductosUseCase,
+    private val sincronizarProductosUseCase: SincronizarProductosUseCase,
     private val registrarProductoUseCase: RegistrarProductoUseCase,
     private val actualizarProductoUseCase: ActualizarProductoUseCase,
     private val eliminarProductoUseCase: EliminarProductoUseCase
@@ -28,31 +30,42 @@ class ProductoViewModel(
     val uiState: StateFlow<ProductoUiState> = _uiState.asStateFlow()
 
     init {
-        cargarProductos()
+        // La base local es la unica fuente de verdad: se observa una vez y la lista se
+        // actualiza sola con cada escritura, sin volver a pedirla a mano.
+        viewModelScope.launch {
+            observarProductosUseCase().collect { productos ->
+                _uiState.update { it.copy(fase = faseDe(productos)) }
+            }
+        }
+        sincronizar()
     }
 
-    fun cargarProductos() {
+    /** Segundo plano: sube lo pendiente y trae el servidor. Un fallo de red no borra ni oculta nada. */
+    fun sincronizar() {
+        if (_uiState.value.sincronizando) return
         viewModelScope.launch {
-            _uiState.update { it.copy(fase = ProductoUiState.FaseInventario.Cargando) }
-            listarProductosUseCase()
-                .onSuccess { productos ->
-                    _uiState.update {
-                        it.copy(
-                            fase = if (productos.isEmpty()) {
-                                ProductoUiState.FaseInventario.SinProductos
-                            } else {
-                                ProductoUiState.FaseInventario.ConProductos(productos)
-                            }
-                        )
-                    }
-                }
+            _uiState.update { it.copy(sincronizando = true) }
+            sincronizarProductosUseCase()
+                .onSuccess { _uiState.update { it.copy(sincronizando = false, avisoRed = null) } }
                 .onFailure { fallo ->
-                    _uiState.update {
-                        it.copy(fase = ProductoUiState.FaseInventario.Error(mensajeDeFallo(fallo)))
-                    }
+                    _uiState.update { it.copy(sincronizando = false, avisoRed = avisoDeSincronizacion(fallo)) }
                 }
         }
     }
+
+    private fun faseDe(productos: List<Producto>): ProductoUiState.FaseInventario =
+        if (productos.isEmpty()) {
+            ProductoUiState.FaseInventario.SinProductos
+        } else {
+            ProductoUiState.FaseInventario.ConProductos(productos)
+        }
+
+    private fun avisoDeSincronizacion(fallo: Throwable): String =
+        when (val error = (fallo as? ErrorApiException)?.error) {
+            ErrorApi.SinConexion, ErrorApi.TiempoAgotado -> "Sin conexión: mostrando datos guardados"
+            null -> fallo.message ?: "No se pudo sincronizar"
+            else -> mensajeDe(error)
+        }
 
     fun registrarProducto(nombre: String, precio: String, stock: String) {
         viewModelScope.launch {
@@ -66,7 +79,6 @@ class ProductoViewModel(
             }
             registrarProductoUseCase(nombre, precio, stock)
                 .onSuccess {
-                    cargarProductos()
                     _uiState.update {
                         it.copy(
                             operacion = ProductoUiState.Operacion.Inactiva,
@@ -90,7 +102,6 @@ class ProductoViewModel(
             }
             actualizarProductoUseCase(producto, nombre, precio, stock)
                 .onSuccess {
-                    cargarProductos()
                     _uiState.update {
                         it.copy(
                             operacion = ProductoUiState.Operacion.Inactiva,
@@ -109,7 +120,6 @@ class ProductoViewModel(
             }
             eliminarProductoUseCase(id)
                 .onSuccess {
-                    cargarProductos()
                     _uiState.update {
                         it.copy(
                             operacion = ProductoUiState.Operacion.Inactiva,
