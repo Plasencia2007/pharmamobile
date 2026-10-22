@@ -1,0 +1,73 @@
+ProductoFlowAndroidHostTest  (1 pruebas, 0 fallos, 4.06 s)  2026-10-21T21:41:10.771Z
+    PASSED  evidenciaCorrutinasYFlow  (4.059 s)
+SharedCommonTest  (1 pruebas, 0 fallos, 0.0 s)  2026-10-21T21:41:14.833Z
+    PASSED  example  (0.0 s)
+SharedLogicAndroidHostTest  (1 pruebas, 0 fallos, 0.002 s)  2026-10-21T21:41:14.835Z
+    PASSED  clienteTelefono  (0.001 s)
+ClienteHttpSesionTest  (5 pruebas, 0 fallos, 0.057 s)  2026-10-21T21:41:14.840Z
+    PASSED  un 401 en una ruta protegida avisa a la sesion y un 401 del login no  (0.017 s)
+    PASSED  alterar el token guardado cambia el ultimo caracter y se envia el alterado  (0.019 s)
+    PASSED  tras cerrar sesion el cliente olvida el token y la siguiente peticion sale sin cabecera  (0.007 s)
+    PASSED  el login sale sin cabecera y las demas peticiones llevan Bearer  (0.005 s)
+    PASSED  un nuevo login reemplaza el token en cache y no reutiliza el anterior  (0.007 s)
+TokenJwtTest  (5 pruebas, 0 fallos, 0.019 s)  2026-10-21T21:41:14.899Z
+    PASSED  sin red un token vencido abre la sesion marcada como vencida  (0.018 s)
+    PASSED  un token vigente devuelve el usuario y sus permisos sin los roles  (0.0 s)
+    PASSED  un token vigente no se marca como vencido  (0.0 s)
+    PASSED  un token mal formado no abre sesion  (0.0 s)
+    PASSED  un token vencido no abre sesion  (0.001 s)
+ProductoRepositorioOfflineTest  (10 pruebas, 0 fallos, 0.084 s)  2026-10-21T21:41:14.920Z
+    PASSED  con red el producto se envia y queda sincronizado con su id real  (0.007 s)
+    PASSED  un producto pendiente se edita y se descarta sin llamar al servidor  (0.008 s)
+    PASSED  dos productos sin red reciben ids locales negativos distintos  (0.009 s)
+    PASSED  lo creado sin red sobrevive a la bajada del servidor y llega al servidor al reconectar  (0.011 s)
+    PASSED  si la subida falla el pendiente se conserva  (0.01 s)
+    PASSED  sincronizar dos veces no vuelve a enviar lo que ya subio  (0.013 s)
+    PASSED  sin red el producto queda pendiente y la pantalla lo ve  (0.006 s)
+    PASSED  obtener lee de la base local sin pedirlo al servidor  (0.006 s)
+    PASSED  sincronizar sube lo pendiente antes de bajar del servidor  (0.009 s)
+    PASSED  reemplazar sincronizados no borra los pendientes  (0.004 s)
+SuiteOfflineTest  (6 pruebas, 0 fallos, 0.831 s)  2026-10-21T21:41:09.939Z
+    PASSED  5 identificadores sin colision - un producto local y uno del servidor conviven  (0.778 s)
+    PASSED  2 registro sin red - queda guardado como pendiente y el Flow lo emite  (0.008 s)
+    PASSED  6 sincronizar dos veces no duplica - la cantidad de filas no cambia  (0.013 s)
+    PASSED  3 envio al reconectar - lo pendiente llega al servidor y deja de estar marcado  (0.01 s)
+    PASSED  4 la bajada no borra lo pendiente - traer la lista del servidor conserva lo creado sin red  (0.009 s)
+    PASSED  1 sincronizacion con red - la base guarda lo del servidor y el Flow emite la lista completa  (0.006 s)
+UltimaSincronizacionTest  (3 pruebas, 0 fallos, 0.021 s)  2026-10-21T21:41:15.006Z
+    PASSED  una sincronizacion fallida conserva la marca anterior  (0.009 s)
+    PASSED  una base nueva nunca se sincronizo  (0.003 s)
+    PASSED  una sincronizacion correcta guarda su instante y la siguiente lo reemplaza  (0.008 s)
+SesionTest  (9 pruebas, 0 fallos, 0.018 s)  2026-10-21T21:41:15.029Z
+    PASSED  validarCredenciales marca los campos vacios  (0.0 s)
+    PASSED  expirar borra el token y limpia el estado y deja un aviso  (0.006 s)
+    PASSED  expirar sin sesion y sin restauracion en curso no deja aviso  (0.002 s)
+    PASSED  puede responde segun el arreglo de permisos  (0.0 s)
+    PASSED  restaurar recupera la sesion guardada sin pedir credenciales  (0.001 s)
+    PASSED  403 es falta de permiso y su mensaje es distinto al de sesion expirada  (0.003 s)
+    PASSED  iniciar sesion correcta devuelve la sesion y credenciales malas fallan con ErrorSesion  (0.003 s)
+    PASSED  401 en el login es credenciales invalidas y en una ruta protegida es sesion expirada  (0.0 s)
+    PASSED  un login nuevo descarta el aviso de sesion expirada  (0.002 s)
+DetalleProductoViewModelTest  (3 pruebas, 0 fallos, 0.061 s)  2026-10-21T21:41:15.049Z
+    PASSED  cargaElProductoYPasaAContenido  (0.052 s)
+    PASSED  compartirAntesDeCargarNoHaceNada  (0.002 s)
+    PASSED  compartirEntregaAlCompartidorElTextoArmadoEnCodigoComun  (0.007 s)
+AntiguedadDatosTest  (5 pruebas, 0 fallos, 0.005 s)  2026-10-21T21:41:15.112Z
+    PASSED  un reloj atrasado no da un tiempo negativo  (0.001 s)
+    PASSED  mas de un dia se cuenta en dias  (0.004 s)
+    PASSED  minutos y horas en singular y plural  (0.0 s)
+    PASSED  menos de un minuto es hace un momento  (0.0 s)
+    PASSED  sin sincronizacion se dice explicitamente  (0.0 s)
+ProductoViewModelTest  (10 pruebas, 0 fallos, 0.04 s)  2026-10-21T21:41:15.122Z
+    PASSED  sincronizacionExitosaLimpiaElAviso  (0.016 s)
+    PASSED  eliminarProductoLoQuitaDelListado  (0.003 s)
+    PASSED  repositorioVacioProduceSinProductos  (0.002 s)
+    PASSED  eliminarProductoFallidoDejaOperacionFallidaSinTocarElListado  (0.002 s)
+    PASSED  registrarActualizaLaListaSinPedirlaDeNuevo  (0.004 s)
+    PASSED  repositorioConProductosProduceConProductos  (0.002 s)
+    PASSED  actualizarProductoRecargaElListadoConLosNuevosDatos  (0.003 s)
+    PASSED  sincronizacionSinRedMuestraAvisoYConservaLosDatosGuardados  (0.002 s)
+    PASSED  errorDeValidacionDelServidorDejaMensajesEnFormularioSinCambiarFase  (0.002 s)
+    PASSED  registroConPrecioCeroDejaErrorEnFormularioSinLlamarAlRepositorio  (0.002 s)
+
+TOTAL: 59 pruebas, 0 fallos, 5.20 s
