@@ -69,8 +69,15 @@ private enum class FiltroInventario(val titulo: String, val cumple: (Producto) -
     // Igual que el indicador de Inicio: un producto por reponer sigue a la venta.
     Activos("Activos", { !it.estaInactivo() }),
     PorReponer("Por reponer", { it.requiereReposicion() }),
-    Inactivos("Inactivos", { it.estaInactivo() })
+    Inactivos("Inactivos", { it.estaInactivo() }),
+    ConError("Sin enviar", { it.envioFallido() })
 }
+
+/**
+ * Lo que otra pantalla le pide a Inventario. Se consume una vez atendida: si
+ * quedara activa, se repetiria cada vez que se vuelve a entrar a la pantalla.
+ */
+enum class SolicitudInventario { NuevoProducto, RevisarFallidas }
 
 private val ANCHO_PRECIO = 72.dp
 private val ANCHO_STOCK = 64.dp
@@ -81,7 +88,8 @@ fun ProductoScreen(
     viewModel: ProductoViewModel,
     onSuccess: (String) -> Unit,
     puedeEscribir: Boolean = true,
-    solicitudNuevo: Int = 0
+    solicitud: SolicitudInventario? = null,
+    onSolicitudAtendida: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val colores = MaterialTheme.colorScheme
@@ -92,12 +100,22 @@ fun ProductoScreen(
     var productoAEliminar by remember { mutableStateOf<Producto?>(null) }
     var productoDetalleId by remember { mutableStateOf<Long?>(null) }
 
-    // El botón "+" del dock vive en App: cada pulsación incrementa solicitudNuevo.
-    LaunchedEffect(solicitudNuevo) {
-        if (solicitudNuevo > 0 && puedeEscribir) {
-            productoEditando = null
-            mostrarFormulario = true
+    // El botón "+" del dock y "Revisar" de Inicio viven fuera de esta pantalla.
+    LaunchedEffect(solicitud) {
+        when (solicitud) {
+            SolicitudInventario.NuevoProducto -> if (puedeEscribir) {
+                productoEditando = null
+                mostrarFormulario = true
+            }
+            SolicitudInventario.RevisarFallidas -> filtro = FiltroInventario.ConError
+            null -> return@LaunchedEffect
         }
+        onSolicitudAtendida()
+    }
+
+    // Al resolverse la última fila fallida, su filtro dejaría la lista vacía.
+    LaunchedEffect(uiState.cola.fallidas) {
+        if (uiState.cola.fallidas == 0 && filtro == FiltroInventario.ConError) filtro = FiltroInventario.Todos
     }
 
     LaunchedEffect(uiState.formulario.mensajeExito) {
@@ -136,11 +154,10 @@ fun ProductoScreen(
         }
         item {
             EstadoSincronizacion(
-                sincronizando = uiState.sincronizando,
-                aviso = uiState.avisoRed,
-                pendientes = uiState.pendientes,
-                ultimaSincronizacion = uiState.ultimaSincronizacion,
+                estado = uiState.estadoSincronizacion,
                 onSincronizar = viewModel::sincronizar,
+                onReintentarFallidas = viewModel::reintentarFallidas,
+                onRevisarFallidas = { filtro = FiltroInventario.ConError },
                 modifier = Modifier.padding(top = 12.dp)
             )
         }
@@ -159,7 +176,7 @@ fun ProductoScreen(
                 modifier = Modifier.padding(top = 14.dp).horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                FiltroInventario.entries.forEach { opcion ->
+                FiltroInventario.entries.filter { it != FiltroInventario.ConError || uiState.cola.fallidas > 0 }.forEach { opcion ->
                     PharmaChip(
                         texto = opcion.titulo,
                         seleccionado = filtro == opcion,
@@ -312,7 +329,9 @@ private fun FilaProducto(producto: Producto, procesando: Boolean, onClick: () ->
     val colores = MaterialTheme.colorScheme
     val bajo = producto.requiereReposicion()
     val inactivo = producto.estaInactivo()
+    val fallido = producto.envioFallido()
     val subtitulo = when {
+        fallido -> "No enviado: ${producto.ultimoError ?: "sin detalle"}"
         producto.pendiente -> "Pendiente de envío · id local ${producto.id}"
         bajo -> "Por reponer · mínimo ${Producto.STOCK_MINIMO}"
         inactivo -> "Inactivo"
@@ -323,7 +342,7 @@ private fun FilaProducto(producto: Producto, procesando: Boolean, onClick: () ->
             .padding(vertical = 6.dp)
             .clip(RoundedCornerShape(12.dp))
             .background(colores.surfaceVariant)
-            .dashedBorder(colores.onSurfaceVariant, 12.dp, 1.dp)
+            .dashedBorder(if (fallido) RojoTexto else colores.onSurfaceVariant, 12.dp, 1.dp)
             .padding(horizontal = 10.dp)
     } else {
         Modifier
@@ -343,7 +362,7 @@ private fun FilaProducto(producto: Producto, procesando: Boolean, onClick: () ->
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                Text(subtitulo, style = MaterialTheme.typography.bodySmall, color = if (bajo) RojoTexto else colores.onSurfaceVariant)
+                Text(subtitulo, style = MaterialTheme.typography.bodySmall, color = if (bajo || fallido) RojoTexto else colores.onSurfaceVariant)
             }
             if (procesando) {
                 CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp, color = colores.primary)

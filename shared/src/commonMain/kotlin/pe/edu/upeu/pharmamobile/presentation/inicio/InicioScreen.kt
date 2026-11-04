@@ -60,7 +60,9 @@ fun InicioScreen(
     estado: ProductoUiState,
     onNavigate: (Screen) -> Unit,
     onAbrirAjustes: () -> Unit,
-    onSincronizar: () -> Unit
+    onSincronizar: () -> Unit,
+    onReintentarFallidas: () -> Unit,
+    onRevisarFallidas: () -> Unit
 ) {
     val colores = MaterialTheme.colorScheme
     val ahora = remember { Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()) }
@@ -95,11 +97,10 @@ fun InicioScreen(
         }
 
         EstadoSincronizacion(
-            sincronizando = estado.sincronizando,
-            aviso = estado.avisoRed,
-            pendientes = estado.pendientes,
-            ultimaSincronizacion = estado.ultimaSincronizacion,
-            onSincronizar = onSincronizar
+            estado = estado.estadoSincronizacion,
+            onSincronizar = onSincronizar,
+            onReintentarFallidas = onReintentarFallidas,
+            onRevisarFallidas = onRevisarFallidas
         )
 
         if (sesion.vencida) {

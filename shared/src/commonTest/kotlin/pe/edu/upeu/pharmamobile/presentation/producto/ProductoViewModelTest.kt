@@ -16,7 +16,9 @@ import pe.edu.upeu.pharmamobile.domain.model.ResumenSync
 import pe.edu.upeu.pharmamobile.domain.repository.ProductoRepository
 import pe.edu.upeu.pharmamobile.domain.usecase.ActualizarProductoUseCase
 import pe.edu.upeu.pharmamobile.domain.usecase.EliminarProductoUseCase
+import pe.edu.upeu.pharmamobile.domain.usecase.ObservarColaUseCase
 import pe.edu.upeu.pharmamobile.domain.usecase.ObservarProductosUseCase
+import pe.edu.upeu.pharmamobile.domain.usecase.ReintentarFallidasUseCase
 import pe.edu.upeu.pharmamobile.domain.usecase.ObservarUltimaSincronizacionUseCase
 import pe.edu.upeu.pharmamobile.domain.usecase.RegistrarProductoUseCase
 import pe.edu.upeu.pharmamobile.domain.usecase.SincronizarProductosUseCase
@@ -110,7 +112,9 @@ class ProductoViewModelTest {
         registrarProductoUseCase = RegistrarProductoUseCase(fake),
         actualizarProductoUseCase = ActualizarProductoUseCase(fake),
         eliminarProductoUseCase = EliminarProductoUseCase(fake),
-        observarUltimaSincronizacionUseCase = ObservarUltimaSincronizacionUseCase(fake)
+        observarUltimaSincronizacionUseCase = ObservarUltimaSincronizacionUseCase(fake),
+        observarColaUseCase = ObservarColaUseCase(fake),
+        reintentarFallidasUseCase = ReintentarFallidasUseCase(fake)
     )
 
     @Test

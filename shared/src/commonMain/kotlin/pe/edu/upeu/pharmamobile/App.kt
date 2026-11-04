@@ -23,7 +23,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -54,6 +53,7 @@ import pe.edu.upeu.pharmamobile.presentation.inicio.InicioScreen
 import pe.edu.upeu.pharmamobile.presentation.pedido.PedidoScreen
 import pe.edu.upeu.pharmamobile.presentation.producto.ProductoScreen
 import pe.edu.upeu.pharmamobile.presentation.producto.ProductoUiState
+import pe.edu.upeu.pharmamobile.presentation.producto.SolicitudInventario
 import pe.edu.upeu.pharmamobile.presentation.producto.ProductoViewModel
 import pe.edu.upeu.pharmamobile.presentation.sesion.LoginScreen
 import pe.edu.upeu.pharmamobile.presentation.sesion.SesionViewModel
@@ -73,8 +73,8 @@ fun App() = KoinContext {
     var alertasStockBajo by remember { mutableStateOf(true) }
     // Al cambiar de usuario se vuelve a Inicio: el nuevo rol puede no tener acceso a la sección anterior.
     var pantallaActual by remember(sesion?.usuario) { mutableStateOf<Screen>(Screen.Inicio) }
-    // Cada toque del "+" del dock incrementa este contador; Inventario abre el formulario al verlo cambiar.
-    var solicitudNuevo by remember(sesion?.usuario) { mutableIntStateOf(0) }
+    // Lo que el dock o Inicio le piden a Inventario; este lo consume al atenderlo.
+    var solicitud by remember(sesion?.usuario) { mutableStateOf<SolicitudInventario?>(null) }
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -126,14 +126,20 @@ fun App() = KoinContext {
                     estado = estadoProductos,
                     onNavigate = { pantallaActual = it },
                     onAbrirAjustes = { pantallaActual = Screen.Config },
-                    onSincronizar = { productoViewModel?.sincronizar() }
+                    onSincronizar = { productoViewModel?.sincronizar() },
+                    onReintentarFallidas = { productoViewModel?.reintentarFallidas() },
+                    onRevisarFallidas = {
+                        solicitud = SolicitudInventario.RevisarFallidas
+                        pantallaActual = Screen.Productos
+                    }
                 )
                 is Screen.Productos -> if (productoViewModel != null) {
                     ProductoScreen(
                         viewModel = productoViewModel,
                         onSuccess = mostrarExito,
                         puedeEscribir = puedeEscribir,
-                        solicitudNuevo = solicitudNuevo
+                        solicitud = solicitud,
+                        onSolicitudAtendida = { solicitud = null }
                     )
                 }
                 is Screen.Clientes -> ConMargenDock { ClienteScreen(onSuccess = mostrarExito) }
@@ -181,8 +187,8 @@ fun App() = KoinContext {
                         onSeleccionar = { id -> destinosDock.firstOrNull { it.titulo == id }?.let { pantallaActual = it } },
                         onNuevo = if (puedeEscribir && puedeCatalogo) {
                             {
+                                solicitud = SolicitudInventario.NuevoProducto
                                 pantallaActual = Screen.Productos
-                                solicitudNuevo++
                             }
                         } else null
                     )

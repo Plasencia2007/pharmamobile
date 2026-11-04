@@ -44,7 +44,9 @@ import pe.edu.upeu.pharmamobile.presentation.components.colorCapsula
 import pe.edu.upeu.pharmamobile.presentation.theme.AmbarTexto
 import pe.edu.upeu.pharmamobile.presentation.theme.AmbarTinte
 import pe.edu.upeu.pharmamobile.presentation.theme.Coral
+import pe.edu.upeu.pharmamobile.presentation.theme.CoralTinte
 import pe.edu.upeu.pharmamobile.presentation.theme.RojoBorde
+import pe.edu.upeu.pharmamobile.presentation.theme.RojoTexto
 import pe.edu.upeu.pharmamobile.presentation.theme.Verde
 import pe.edu.upeu.pharmamobile.presentation.theme.VerdeTexto
 import pe.edu.upeu.pharmamobile.presentation.theme.VerdeTinte
@@ -126,13 +128,22 @@ private fun Contenido(
             }
         }
         Text(producto.nombre, style = MaterialTheme.typography.displaySmall, color = colores.onSurface)
+        if (producto.envioFallido()) {
+            Text(
+                "PharmaSoft no lo aceptó: ${producto.ultimoError ?: "sin detalle"}. Corrígelo con Editar o descártalo.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = RojoTexto
+            )
+        }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             if (inactivo) {
                 Pildora("No disponible", colores.surfaceContainerHighest, colores.onSurfaceVariant)
             } else {
                 Pildora("En venta", VerdeTinte, VerdeTexto, punto = Verde)
             }
-            if (producto.pendiente) {
+            if (producto.envioFallido()) {
+                Pildora("Sin enviar · id ${producto.id}", CoralTinte, RojoTexto)
+            } else if (producto.pendiente) {
                 Pildora("Pendiente de envío · id ${producto.id}", AmbarTinte, AmbarTexto)
             } else {
                 Pildora("En PharmaSoft · id ${producto.id}", colores.surfaceContainerHighest, colores.onSurface)

@@ -23,11 +23,13 @@ import pe.edu.upeu.pharmamobile.domain.usecase.ProbarAccesoUseCase
 import pe.edu.upeu.pharmamobile.domain.repository.ProductoRepository
 import pe.edu.upeu.pharmamobile.domain.usecase.ActualizarProductoUseCase
 import pe.edu.upeu.pharmamobile.domain.usecase.EliminarProductoUseCase
+import pe.edu.upeu.pharmamobile.domain.usecase.ObservarColaUseCase
 import pe.edu.upeu.pharmamobile.domain.usecase.ObservarProductosUseCase
 import pe.edu.upeu.pharmamobile.domain.usecase.ObservarUltimaSincronizacionUseCase
 import pe.edu.upeu.pharmamobile.domain.usecase.ObtenerProductoUseCase
 import pe.edu.upeu.pharmamobile.domain.usecase.SincronizarProductosUseCase
 import pe.edu.upeu.pharmamobile.domain.usecase.RegistrarProductoUseCase
+import pe.edu.upeu.pharmamobile.domain.usecase.ReintentarFallidasUseCase
 import pe.edu.upeu.pharmamobile.presentation.detalle.DetalleProductoViewModel
 import pe.edu.upeu.pharmamobile.presentation.producto.ProductoViewModel
 import pe.edu.upeu.pharmamobile.presentation.sesion.SesionViewModel
@@ -66,6 +68,8 @@ val domainModule = module {
     factory { ObservarProductosUseCase(get()) }
     factory { SincronizarProductosUseCase(get()) }
     factory { ObservarUltimaSincronizacionUseCase(get()) }
+    factory { ObservarColaUseCase(get()) }
+    factory { ReintentarFallidasUseCase(get()) }
     factory { ObtenerProductoUseCase(get()) }
     factory { RegistrarProductoUseCase(get()) }
     factory { ActualizarProductoUseCase(get()) }
@@ -74,7 +78,7 @@ val domainModule = module {
 
 val presentationModule = module {
     viewModel { SesionViewModel(get(), get(), get(), get(), get()) }
-    viewModel { ProductoViewModel(get(), get(), get(), get(), get(), get()) }
+    viewModel { ProductoViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
     viewModel { (productoId: Long) -> DetalleProductoViewModel(productoId, get(), get()) }
 }
 

@@ -2,6 +2,7 @@ package pe.edu.upeu.pharmamobile.domain.usecase
 
 import kotlinx.coroutines.flow.Flow
 import pe.edu.upeu.pharmamobile.data.remote.ejecutarLlamada
+import pe.edu.upeu.pharmamobile.domain.model.ColaEnvio
 import pe.edu.upeu.pharmamobile.domain.model.Producto
 import pe.edu.upeu.pharmamobile.domain.model.ResumenSync
 import pe.edu.upeu.pharmamobile.domain.repository.ProductoRepository
@@ -19,6 +20,20 @@ class SincronizarProductosUseCase(
 ) {
     suspend operator fun invoke(): Result<ResumenSync> =
         ejecutarLlamada { repository.sincronizar() }
+}
+
+/** Cuantos cambios faltan por enviar y cuantos fallaron, leido de la base local. */
+class ObservarColaUseCase(
+    private val repository: ProductoRepository
+) {
+    operator fun invoke(): Flow<ColaEnvio> = repository.observarCola()
+}
+
+/** El usuario decide volver a intentar las filas rechazadas o agotadas. */
+class ReintentarFallidasUseCase(
+    private val repository: ProductoRepository
+) {
+    suspend operator fun invoke() = repository.reintentarFallidas()
 }
 
 /** Instante de la ultima sincronizacion correcta, para decirle al usuario que tan viejos son sus datos. */

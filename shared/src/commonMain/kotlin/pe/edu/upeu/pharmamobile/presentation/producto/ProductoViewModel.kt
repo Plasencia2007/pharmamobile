@@ -13,11 +13,14 @@ import pe.edu.upeu.pharmamobile.domain.error.ErrorApiException
 import pe.edu.upeu.pharmamobile.domain.model.Producto
 import pe.edu.upeu.pharmamobile.domain.usecase.ActualizarProductoUseCase
 import pe.edu.upeu.pharmamobile.domain.usecase.EliminarProductoUseCase
+import pe.edu.upeu.pharmamobile.domain.usecase.ObservarColaUseCase
 import pe.edu.upeu.pharmamobile.domain.usecase.ObservarProductosUseCase
 import pe.edu.upeu.pharmamobile.domain.usecase.ObservarUltimaSincronizacionUseCase
 import pe.edu.upeu.pharmamobile.domain.usecase.ProductoValidationException
+import pe.edu.upeu.pharmamobile.domain.usecase.ReintentarFallidasUseCase
 import pe.edu.upeu.pharmamobile.domain.usecase.RegistrarProductoUseCase
 import pe.edu.upeu.pharmamobile.domain.usecase.SincronizarProductosUseCase
+import pe.edu.upeu.pharmamobile.presentation.sincronizacion.AVISO_SIN_CONEXION
 
 class ProductoViewModel(
     private val observarProductosUseCase: ObservarProductosUseCase,
@@ -25,7 +28,9 @@ class ProductoViewModel(
     private val registrarProductoUseCase: RegistrarProductoUseCase,
     private val actualizarProductoUseCase: ActualizarProductoUseCase,
     private val eliminarProductoUseCase: EliminarProductoUseCase,
-    private val observarUltimaSincronizacionUseCase: ObservarUltimaSincronizacionUseCase
+    private val observarUltimaSincronizacionUseCase: ObservarUltimaSincronizacionUseCase,
+    private val observarColaUseCase: ObservarColaUseCase,
+    private val reintentarFallidasUseCase: ReintentarFallidasUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProductoUiState())
@@ -44,7 +49,18 @@ class ProductoViewModel(
                 _uiState.update { it.copy(ultimaSincronizacion = instante) }
             }
         }
+        viewModelScope.launch {
+            observarColaUseCase().collect { cola -> _uiState.update { it.copy(cola = cola) } }
+        }
         sincronizar()
+    }
+
+    /** Las filas fallidas vuelven a la cola y se intenta enviarlas de inmediato. */
+    fun reintentarFallidas() {
+        viewModelScope.launch {
+            reintentarFallidasUseCase()
+            sincronizar()
+        }
     }
 
     /** Segundo plano: sube lo pendiente y trae el servidor. Un fallo de red no borra ni oculta nada. */
@@ -69,7 +85,7 @@ class ProductoViewModel(
 
     private fun avisoDeSincronizacion(fallo: Throwable): String =
         when (val error = (fallo as? ErrorApiException)?.error) {
-            ErrorApi.SinConexion, ErrorApi.TiempoAgotado -> "Sin conexión: mostrando datos guardados"
+            ErrorApi.SinConexion, ErrorApi.TiempoAgotado -> AVISO_SIN_CONEXION
             null -> fallo.message ?: "No se pudo sincronizar"
             else -> mensajeDe(error)
         }
