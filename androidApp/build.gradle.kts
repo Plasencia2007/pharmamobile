@@ -7,8 +7,8 @@ plugins {
     alias(libs.plugins.firebaseCrashlytics) apply false
 }
 
-// google-services.json es propio de cada proyecto de Firebase y no se versiona. Sin el
-// archivo la app compila igual: la telemetria queda inactiva y el resto no cambia.
+// google-services.json es propio de cada proyecto de Firebase. Sin el archivo la app
+// compila igual: la telemetria queda inactiva y el resto no cambia.
 if (file("google-services.json").exists()) {
     apply(plugin = "com.google.gms.google-services")
     apply(plugin = "com.google.firebase.crashlytics")
