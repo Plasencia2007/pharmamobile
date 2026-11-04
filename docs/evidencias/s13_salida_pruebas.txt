@@ -1,0 +1,95 @@
+ProductoFlowAndroidHostTest  (1 pruebas, 0 fallos, 4.132 s)
+    PASSED  evidenciaCorrutinasYFlow
+SharedCommonTest  (1 pruebas, 0 fallos, 0.0 s)
+    PASSED  example
+SharedLogicAndroidHostTest  (1 pruebas, 0 fallos, 0.001 s)
+    PASSED  clienteTelefono
+ClienteHttpSesionTest  (5 pruebas, 0 fallos, 0.261 s)
+    PASSED  un 401 en una ruta protegida avisa a la sesion y un 401 del login no
+    PASSED  alterar el token guardado cambia el ultimo caracter y se envia el alterado
+    PASSED  tras cerrar sesion el cliente olvida el token y la siguiente peticion sale sin cabecera
+    PASSED  el login sale sin cabecera y las demas peticiones llevan Bearer
+    PASSED  un nuevo login reemplaza el token en cache y no reutiliza el anterior
+TokenJwtTest  (5 pruebas, 0 fallos, 0.013 s)
+    PASSED  sin red un token vencido abre la sesion marcada como vencida
+    PASSED  un token vigente devuelve el usuario y sus permisos sin los roles
+    PASSED  un token vigente no se marca como vencido
+    PASSED  un token mal formado no abre sesion
+    PASSED  un token vencido no abre sesion
+ProductoRepositorioOfflineTest  (10 pruebas, 0 fallos, 0.226 s)
+    PASSED  con red el producto se envia y queda sincronizado con su id real
+    PASSED  un producto pendiente se edita y se descarta sin llamar al servidor
+    PASSED  dos productos sin red reciben ids locales negativos distintos
+    PASSED  lo creado sin red sobrevive a la bajada del servidor y llega al servidor al reconectar
+    PASSED  si la subida falla el pendiente se conserva
+    PASSED  sincronizar dos veces no vuelve a enviar lo que ya subio
+    PASSED  sin red el producto queda pendiente y la pantalla lo ve
+    PASSED  obtener lee de la base local sin pedirlo al servidor
+    PASSED  sincronizar sube lo pendiente antes de bajar del servidor
+    PASSED  reemplazar sincronizados no borra los pendientes
+SincronizacionTest  (11 pruebas, 0 fallos, 0.108 s)
+    PASSED  unaFilaRechazadaNoBloqueaALasDemasNiLaBajada
+    PASSED  unFalloPermanenteMarcaLaFilaYNoLaReintenta
+    PASSED  laTelemetriaNoRecibeLoQueEscribioElUsuario
+    PASSED  reintentarDevuelveLasFallidasALaCola
+    PASSED  corregirUnaFilaFallidaLaDevuelveALaCola
+    PASSED  unServidorQueNoRespondeGastaIntentosPorqueSiHayRed
+    PASSED  laEsperaCreceYAlAgotarLosIntentosLaFilaQuedaFallida
+    PASSED  sinRedNoSeGastanIntentos
+    PASSED  unFalloTransitorioSumaIntentoYNoMarcaFallida
+    PASSED  faltaDePermisoEsPermanente
+    PASSED  laSesionVencidaNoGastaIntentosYLaFilaSeEnviaDespues
+SuiteOfflineTest  (6 pruebas, 0 fallos, 0.042 s)
+    PASSED  5 identificadores sin colision - un producto local y uno del servidor conviven
+    PASSED  2 registro sin red - queda guardado como pendiente y el Flow lo emite
+    PASSED  6 sincronizar dos veces no duplica - la cantidad de filas no cambia
+    PASSED  3 envio al reconectar - lo pendiente llega al servidor y deja de estar marcado
+    PASSED  4 la bajada no borra lo pendiente - traer la lista del servidor conserva lo creado sin red
+    PASSED  1 sincronizacion con red - la base guarda lo del servidor y el Flow emite la lista completa
+UltimaSincronizacionTest  (3 pruebas, 0 fallos, 0.014 s)
+    PASSED  una sincronizacion fallida conserva la marca anterior
+    PASSED  una base nueva nunca se sincronizo
+    PASSED  una sincronizacion correcta guarda su instante y la siguiente lo reemplaza
+SesionTest  (9 pruebas, 0 fallos, 0.013 s)
+    PASSED  validarCredenciales marca los campos vacios
+    PASSED  expirar borra el token y limpia el estado y deja un aviso
+    PASSED  expirar sin sesion y sin restauracion en curso no deja aviso
+    PASSED  puede responde segun el arreglo de permisos
+    PASSED  restaurar recupera la sesion guardada sin pedir credenciales
+    PASSED  403 es falta de permiso y su mensaje es distinto al de sesion expirada
+    PASSED  iniciar sesion correcta devuelve la sesion y credenciales malas fallan con ErrorSesion
+    PASSED  401 en el login es credenciales invalidas y en una ruta protegida es sesion expirada
+    PASSED  un login nuevo descarta el aviso de sesion expirada
+DetalleProductoViewModelTest  (3 pruebas, 0 fallos, 0.03 s)
+    PASSED  cargaElProductoYPasaAContenido
+    PASSED  compartirAntesDeCargarNoHaceNada
+    PASSED  compartirEntregaAlCompartidorElTextoArmadoEnCodigoComun
+PermisosViewModelTest  (8 pruebas, 0 fallos, 0.013 s)
+    PASSED  concederDesdeAjustesTrasNegarloActivaLasAlertas
+    PASSED  conPermisoSePuedenApagarLasAlertas
+    PASSED  cancelarLaExplicacionNoPideElPermiso
+    PASSED  alVolverDeAjustesSeVeElPermisoNuevo
+    PASSED  denegadoParaSiempreLlevaAAjustesSinPedir
+    PASSED  siLoNiegaLasAlertasNoSeActivan
+    PASSED  alConcederseLasAlertasQuedanActivas
+    PASSED  explicaAntesDePedirElPermiso
+AntiguedadDatosTest  (5 pruebas, 0 fallos, 0.004 s)
+    PASSED  un reloj atrasado no da un tiempo negativo
+    PASSED  mas de un dia se cuenta en dias
+    PASSED  minutos y horas en singular y plural
+    PASSED  menos de un minuto es hace un momento
+    PASSED  sin sincronizacion se dice explicitamente
+ProductoViewModelTest  (11 pruebas, 0 fallos, 0.028 s)
+    PASSED  unServidorQueNoRespondeNoSeInformaComoFaltaDeConexion
+    PASSED  sincronizacionExitosaLimpiaElAviso
+    PASSED  eliminarProductoLoQuitaDelListado
+    PASSED  repositorioVacioProduceSinProductos
+    PASSED  eliminarProductoFallidoDejaOperacionFallidaSinTocarElListado
+    PASSED  registrarActualizaLaListaSinPedirlaDeNuevo
+    PASSED  repositorioConProductosProduceConProductos
+    PASSED  actualizarProductoRecargaElListadoConLosNuevosDatos
+    PASSED  sincronizacionSinRedMuestraAvisoYConservaLosDatosGuardados
+    PASSED  errorDeValidacionDelServidorDejaMensajesEnFormularioSinCambiarFase
+    PASSED  registroConPrecioCeroDejaErrorEnFormularioSinLlamarAlRepositorio
+
+TOTAL: 79 pruebas, 0 fallos, 4.88 s
