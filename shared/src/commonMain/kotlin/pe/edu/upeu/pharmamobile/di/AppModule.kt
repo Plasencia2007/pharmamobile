@@ -12,6 +12,7 @@ import pe.edu.upeu.pharmamobile.data.remote.ProductoApi
 import pe.edu.upeu.pharmamobile.db.PharmaDb
 import pe.edu.upeu.pharmamobile.data.remote.crearHttpClient
 import pe.edu.upeu.pharmamobile.data.repository.AuthRepositorioRest
+import pe.edu.upeu.pharmamobile.data.firebase.TelemetriaFirebase
 import pe.edu.upeu.pharmamobile.data.local.ProductoLocal
 import pe.edu.upeu.pharmamobile.data.repository.ProductoRepositorioOffline
 import pe.edu.upeu.pharmamobile.domain.repository.AuthRepository
@@ -20,6 +21,7 @@ import pe.edu.upeu.pharmamobile.domain.usecase.AlterarTokenGuardadoUseCase
 import pe.edu.upeu.pharmamobile.domain.usecase.CerrarSesionUseCase
 import pe.edu.upeu.pharmamobile.domain.usecase.IniciarSesionUseCase
 import pe.edu.upeu.pharmamobile.domain.usecase.ProbarAccesoUseCase
+import pe.edu.upeu.pharmamobile.domain.port.Telemetria
 import pe.edu.upeu.pharmamobile.domain.repository.ProductoRepository
 import pe.edu.upeu.pharmamobile.domain.usecase.ActualizarProductoUseCase
 import pe.edu.upeu.pharmamobile.domain.usecase.EliminarProductoUseCase
@@ -58,7 +60,10 @@ val dataModule = module {
     single<AuthRepository> { AuthRepositorioRest(get(), get()) }
     single { GestorSesion(get()) }
     single { ProductoLocal(get()) }
-    single<ProductoRepository> { ProductoRepositorioOffline(get(), get(), CATEGORIA_POR_DEFECTO) }
+    single<Telemetria> { TelemetriaFirebase() }
+    single<ProductoRepository> {
+        ProductoRepositorioOffline(get(), get(), CATEGORIA_POR_DEFECTO, telemetria = get())
+    }
 }
 
 val domainModule = module {

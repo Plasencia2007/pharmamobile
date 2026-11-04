@@ -18,5 +18,9 @@ captures
 **/xcshareddata/WorkspaceSettings.xcsettings
 node_modules/
 
+# Configuracion de Firebase propia de cada proyecto
+google-services.json
+GoogleService-Info.plist
+
 # Los PDFs de entrega se generan localmente y no se versionan
 *.pdf

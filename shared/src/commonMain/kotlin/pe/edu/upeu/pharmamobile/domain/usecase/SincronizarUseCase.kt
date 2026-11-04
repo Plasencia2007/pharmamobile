@@ -4,6 +4,8 @@ import kotlinx.coroutines.delay
 import pe.edu.upeu.pharmamobile.domain.model.Producto
 import pe.edu.upeu.pharmamobile.domain.model.ResultadoEnvio
 import pe.edu.upeu.pharmamobile.domain.model.ResumenSync
+import pe.edu.upeu.pharmamobile.domain.port.Telemetria
+import pe.edu.upeu.pharmamobile.domain.port.TelemetriaNula
 import pe.edu.upeu.pharmamobile.domain.repository.ProductoLocalRepository
 import pe.edu.upeu.pharmamobile.domain.repository.ProductoRemotoRepository
 
@@ -16,6 +18,7 @@ class SincronizarUseCase(
     private val local: ProductoLocalRepository,
     private val remoto: ProductoRemotoRepository,
     private val ahora: () -> Long,
+    private val telemetria: Telemetria = TelemetriaNula,
     private val esperar: suspend (Long) -> Unit = { delay(it) }
 ) {
     suspend operator fun invoke(): ResumenSync {
@@ -29,6 +32,8 @@ class SincronizarUseCase(
                 }
                 is ResultadoEnvio.Permanente -> {
                     local.marcarFallida(fila.id, resultado.motivo, MAX_INTENTOS)
+                    // Sin el motivo: repite lo que escribio el usuario y no debe salir del telefono.
+                    telemetria.registrarEvento("sync_fila_rechazada")
                     fallidas++
                 }
                 is ResultadoEnvio.Transitorio -> {

@@ -73,6 +73,7 @@ kotlin {
             implementation(libs.ktor.client.auth)
             implementation(libs.sqldelight.runtime)
             implementation(libs.sqldelight.coroutines)
+            implementation(libs.firebase.crashlytics)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)

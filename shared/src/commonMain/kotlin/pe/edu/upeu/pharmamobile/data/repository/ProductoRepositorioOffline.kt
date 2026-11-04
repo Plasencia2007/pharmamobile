@@ -3,6 +3,7 @@ package pe.edu.upeu.pharmamobile.data.repository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.io.IOException
 import pe.edu.upeu.pharmamobile.data.local.ProductoLocal
 import pe.edu.upeu.pharmamobile.data.mapper.toDomain
 import pe.edu.upeu.pharmamobile.data.mapper.toRequest
@@ -10,6 +11,8 @@ import pe.edu.upeu.pharmamobile.data.remote.ProductoApi
 import pe.edu.upeu.pharmamobile.domain.model.ColaEnvio
 import pe.edu.upeu.pharmamobile.domain.model.Producto
 import pe.edu.upeu.pharmamobile.domain.model.ResumenSync
+import pe.edu.upeu.pharmamobile.domain.port.Telemetria
+import pe.edu.upeu.pharmamobile.domain.port.TelemetriaNula
 import pe.edu.upeu.pharmamobile.domain.repository.ProductoRepository
 import pe.edu.upeu.pharmamobile.domain.usecase.SincronizarUseCase
 import kotlin.time.Clock
@@ -25,10 +28,12 @@ class ProductoRepositorioOffline(
     private val remoto: ProductoApi,
     private val categoriaPorDefecto: Long,
     /** Inyectable para que las pruebas fijen la hora en lugar de depender del reloj real. */
-    private val ahora: () -> Long = { Clock.System.now().toEpochMilliseconds() }
+    private val ahora: () -> Long = { Clock.System.now().toEpochMilliseconds() },
+    private val telemetria: Telemetria = TelemetriaNula
 ) : ProductoRepository {
 
-    private val sincronizacion = SincronizarUseCase(local, EnvioRepositorioRest(remoto, categoriaPorDefecto), ahora)
+    private val sincronizacion =
+        SincronizarUseCase(local, EnvioRepositorioRest(remoto, categoriaPorDefecto), ahora, telemetria)
 
     override fun observar(): Flow<List<Producto>> = local.observar()
 
@@ -80,8 +85,10 @@ class ProductoRepositorioOffline(
             bloque()
         } catch (cancelacion: CancellationException) {
             throw cancelacion
-        } catch (_: Exception) {
-            // Sin conexion, tiempo agotado o rechazo del servidor: el producto sigue pendiente.
+        } catch (sinRed: IOException) {
+            // Sin conexion: el producto sigue pendiente y es un caso normal, no un fallo.
+        } catch (e: Exception) {
+            telemetria.registrarError(e, mapOf("operacion" to "registrar_producto"))
         }
     }
 }

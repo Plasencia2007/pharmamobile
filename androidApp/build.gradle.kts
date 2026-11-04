@@ -3,6 +3,15 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.googleServices) apply false
+    alias(libs.plugins.firebaseCrashlytics) apply false
+}
+
+// google-services.json es propio de cada proyecto de Firebase y no se versiona. Sin el
+// archivo la app compila igual: la telemetria queda inactiva y el resto no cambia.
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
+    apply(plugin = "com.google.firebase.crashlytics")
 }
 
 kotlin {
