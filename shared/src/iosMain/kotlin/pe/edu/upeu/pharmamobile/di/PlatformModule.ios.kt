@@ -11,8 +11,12 @@ import pe.edu.upeu.pharmamobile.data.local.AlmacenSeguro
 import pe.edu.upeu.pharmamobile.data.local.AlmacenSeguroIos
 import pe.edu.upeu.pharmamobile.data.local.CreadorDeDriver
 import pe.edu.upeu.pharmamobile.data.local.CreadorDeDriverIos
+import pe.edu.upeu.pharmamobile.domain.permiso.GestorPermisos
 import pe.edu.upeu.pharmamobile.domain.platform.Compartidor
+import pe.edu.upeu.pharmamobile.domain.port.Notificador
 import pe.edu.upeu.pharmamobile.platform.CompartidorIos
+import pe.edu.upeu.pharmamobile.platform.GestorPermisosIos
+import pe.edu.upeu.pharmamobile.platform.NotificadorIos
 
 @OptIn(ExperimentalNativeApi::class)
 actual val platformModule: Module = module {
@@ -21,4 +25,6 @@ actual val platformModule: Module = module {
     single(named(NOMBRE_DEPURACION)) { Platform.isDebugBinary }
     single<CreadorDeDriver> { CreadorDeDriverIos() }
     single<AlmacenSeguro> { AlmacenSeguroIos() }
+    single<GestorPermisos> { GestorPermisosIos() }
+    single<Notificador> { NotificadorIos() }
 }

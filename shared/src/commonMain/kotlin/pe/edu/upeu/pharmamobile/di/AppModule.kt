@@ -31,6 +31,7 @@ import pe.edu.upeu.pharmamobile.domain.usecase.SincronizarProductosUseCase
 import pe.edu.upeu.pharmamobile.domain.usecase.RegistrarProductoUseCase
 import pe.edu.upeu.pharmamobile.domain.usecase.ReintentarFallidasUseCase
 import pe.edu.upeu.pharmamobile.presentation.detalle.DetalleProductoViewModel
+import pe.edu.upeu.pharmamobile.presentation.permiso.PermisosViewModel
 import pe.edu.upeu.pharmamobile.presentation.producto.ProductoViewModel
 import pe.edu.upeu.pharmamobile.presentation.sesion.SesionViewModel
 
@@ -79,6 +80,7 @@ val domainModule = module {
 val presentationModule = module {
     viewModel { SesionViewModel(get(), get(), get(), get(), get()) }
     viewModel { ProductoViewModel(get(), get(), get(), get(), get(), get(), get(), get()) }
+    viewModel { PermisosViewModel(get()) }
     viewModel { (productoId: Long) -> DetalleProductoViewModel(productoId, get(), get()) }
 }
 

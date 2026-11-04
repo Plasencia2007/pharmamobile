@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -27,14 +28,18 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import pe.edu.upeu.pharmamobile.domain.model.Producto
 import pe.edu.upeu.pharmamobile.domain.model.Sesion
+import pe.edu.upeu.pharmamobile.domain.permiso.EstadoPermiso
 import pe.edu.upeu.pharmamobile.platform.InfoDispositivo
+import pe.edu.upeu.pharmamobile.presentation.permiso.PermisosUiState
 import pe.edu.upeu.pharmamobile.presentation.sesion.SesionUiState
 import pe.edu.upeu.pharmamobile.presentation.theme.RojoBorde
 import pe.edu.upeu.pharmamobile.presentation.theme.fuenteMono
@@ -43,8 +48,11 @@ import pe.edu.upeu.pharmamobile.presentation.theme.fuenteMono
 fun ConfigScreen(
     darkTheme: Boolean,
     onDarkThemeChange: (Boolean) -> Unit,
-    alertasStockBajo: Boolean,
+    permisos: PermisosUiState,
     onAlertasStockBajoChange: (Boolean) -> Unit,
+    onConfirmarPermiso: () -> Unit,
+    onCancelarPermiso: () -> Unit,
+    onAbrirAjustesSistema: () -> Unit,
     sesion: Sesion?,
     diagnostico: SesionUiState.Diagnostico,
     alProbarClientes: () -> Unit,
@@ -56,6 +64,25 @@ fun ConfigScreen(
     porEnviar: Int = 0
 ) {
     val colores = MaterialTheme.colorScheme
+    if (permisos.explicando) {
+        // Se explica antes de pedir: el diálogo del sistema solo se puede rechazar dos veces.
+        AlertDialog(
+            onDismissRequest = onCancelarPermiso,
+            title = { Text("Permitir notificaciones", style = MaterialTheme.typography.titleLarge) },
+            text = {
+                Text(
+                    "PharmaMobile te avisará cuando un producto llegue al stock mínimo, para que puedas reponerlo a tiempo. No se usa para nada más.",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = onConfirmarPermiso) { Text("Continuar", color = colores.onSurface) }
+            },
+            dismissButton = {
+                TextButton(onClick = onCancelarPermiso) { Text("Ahora no", color = colores.onSurfaceVariant) }
+            }
+        )
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -96,7 +123,34 @@ fun ConfigScreen(
         Seccion("Preferencias") {
             Preferencia("Tema oscuro", "Cambia la apariencia de toda la app", darkTheme, onDarkThemeChange)
             HorizontalDivider(color = colores.outlineVariant)
-            Preferencia("Alertas de stock bajo", "Avisar cuando queden menos de 10 uds.", alertasStockBajo, onAlertasStockBajoChange)
+            Preferencia(
+                "Alertas de stock bajo",
+                if (permisos.notificaciones == EstadoPermiso.Concedido) {
+                    "Avisar cuando queden ${Producto.STOCK_MINIMO} uds. o menos"
+                } else {
+                    "Requiere permiso de notificaciones"
+                },
+                permisos.alertasActivas,
+                onAlertasStockBajoChange,
+                habilitado = permisos.notificaciones != EstadoPermiso.DenegadoParaSiempre
+            )
+            if (permisos.notificaciones == EstadoPermiso.DenegadoParaSiempre) {
+                HorizontalDivider(color = colores.outlineVariant)
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text(
+                        "Bloqueaste las notificaciones. El sistema ya no permite pedirlas desde aquí: actívalas en Ajustes.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colores.onSurfaceVariant
+                    )
+                    OutlinedButton(
+                        onClick = onAbrirAjustesSistema,
+                        modifier = Modifier.fillMaxWidth().height(44.dp),
+                        shape = RoundedCornerShape(22.dp)
+                    ) {
+                        Text("Abrir Ajustes", style = MaterialTheme.typography.labelLarge, color = colores.onSurface)
+                    }
+                }
+            }
         }
 
         DiagnosticoPermisos(diagnostico = diagnostico, alProbar = alProbarClientes)
@@ -220,7 +274,8 @@ private fun Preferencia(
     titulo: String,
     descripcion: String,
     checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
+    onCheckedChange: (Boolean) -> Unit,
+    habilitado: Boolean = true
 ) {
     val colores = MaterialTheme.colorScheme
     Row(
@@ -240,6 +295,7 @@ private fun Preferencia(
         Switch(
             checked = checked,
             onCheckedChange = onCheckedChange,
+            enabled = habilitado,
             colors = SwitchDefaults.colors(checkedTrackColor = colores.primary, checkedThumbColor = colores.onPrimary)
         )
     }

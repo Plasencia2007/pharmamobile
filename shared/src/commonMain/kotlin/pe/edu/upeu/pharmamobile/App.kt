@@ -22,6 +22,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigationevent.NavigationEventInfo
 import androidx.navigationevent.compose.NavigationBackHandler
@@ -43,6 +45,7 @@ import org.koin.core.qualifier.named
 import pe.edu.upeu.pharmamobile.di.NOMBRE_DEPURACION
 import pe.edu.upeu.pharmamobile.domain.model.Permisos
 import pe.edu.upeu.pharmamobile.domain.model.Sesion
+import pe.edu.upeu.pharmamobile.domain.port.Notificador
 import pe.edu.upeu.pharmamobile.navigation.Screen
 import pe.edu.upeu.pharmamobile.presentation.cliente.ClienteScreen
 import pe.edu.upeu.pharmamobile.presentation.components.DockNavegacion
@@ -51,6 +54,7 @@ import pe.edu.upeu.pharmamobile.presentation.components.ItemDock
 import pe.edu.upeu.pharmamobile.presentation.config.ConfigScreen
 import pe.edu.upeu.pharmamobile.presentation.inicio.InicioScreen
 import pe.edu.upeu.pharmamobile.presentation.pedido.PedidoScreen
+import pe.edu.upeu.pharmamobile.presentation.permiso.PermisosViewModel
 import pe.edu.upeu.pharmamobile.presentation.producto.ProductoScreen
 import pe.edu.upeu.pharmamobile.presentation.producto.ProductoUiState
 import pe.edu.upeu.pharmamobile.presentation.producto.SolicitudInventario
@@ -70,11 +74,19 @@ fun App() = KoinContext {
     val sesionUi by sesionViewModel.uiState.collectAsStateWithLifecycle()
     val sesion = sesionUi.sesion
     var darkTheme by remember { mutableStateOf(false) }
-    var alertasStockBajo by remember { mutableStateOf(true) }
     // Al cambiar de usuario se vuelve a Inicio: el nuevo rol puede no tener acceso a la sección anterior.
     var pantallaActual by remember(sesion?.usuario) { mutableStateOf<Screen>(Screen.Inicio) }
     // Lo que el dock o Inicio le piden a Inventario; este lo consume al atenderlo.
     var solicitud by remember(sesion?.usuario) { mutableStateOf<SolicitudInventario?>(null) }
+
+    val permisosViewModel = koinViewModel<PermisosViewModel>()
+    val permisos by permisosViewModel.uiState.collectAsStateWithLifecycle()
+    // Al volver de Ajustes del sistema el permiso pudo haber cambiado.
+    LifecycleResumeEffect(Unit) {
+        permisosViewModel.refrescar()
+        onPauseOrDispose { }
+    }
+    val notificador: Notificador = koinInject()
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -110,6 +122,13 @@ fun App() = KoinContext {
         } else null
         val estadoProductos = productoViewModel?.uiState?.collectAsStateWithLifecycle()?.value ?: ProductoUiState()
         val puedeEscribir = sesion.puede(Permisos.CATALOGO_ESCRIBIR)
+
+        // Alerta real del permiso: avisa cuando cambia la cantidad de productos por reponer.
+        val porReponer = (estadoProductos.fase as? ProductoUiState.FaseInventario.ConProductos)
+            ?.productos?.count { it.requiereReposicion() } ?: 0
+        LaunchedEffect(porReponer, permisos.alertasActivas) {
+            if (permisos.alertasActivas && porReponer > 0) notificador.avisarStockBajo(porReponer)
+        }
 
         // Atrás del sistema: desde cualquier sección (Ajustes incluido) se vuelve a Inicio;
         // en Inicio no se intercepta y el sistema cierra la app como de costumbre.
@@ -147,8 +166,11 @@ fun App() = KoinContext {
                 is Screen.Config -> ConfigScreen(
                     darkTheme = darkTheme,
                     onDarkThemeChange = { darkTheme = it },
-                    alertasStockBajo = alertasStockBajo,
-                    onAlertasStockBajoChange = { alertasStockBajo = it },
+                    permisos = permisos,
+                    onAlertasStockBajoChange = permisosViewModel::alCambiarAlertas,
+                    onConfirmarPermiso = permisosViewModel::confirmarExplicacion,
+                    onCancelarPermiso = permisosViewModel::cancelarExplicacion,
+                    onAbrirAjustesSistema = permisosViewModel::abrirAjustes,
                     sesion = sesion,
                     diagnostico = sesionUi.diagnostico,
                     alProbarClientes = { sesionViewModel.probarAcceso("clientes") },
