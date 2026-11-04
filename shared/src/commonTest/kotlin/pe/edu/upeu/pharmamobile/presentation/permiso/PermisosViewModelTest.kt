@@ -118,6 +118,20 @@ class PermisosViewModelTest {
     }
 
     @Test
+    fun concederDesdeAjustesTrasNegarloActivaLasAlertas() = runTest {
+        val gestor = GestorFalso(EstadoPermiso.Denegado, alSolicitar = EstadoPermiso.DenegadoParaSiempre)
+        val viewModel = viewModelCon(gestor)
+        viewModel.alCambiarAlertas(true)
+        viewModel.confirmarExplicacion()
+        assertFalse(viewModel.uiState.value.alertasActivas)
+
+        gestor.actual = EstadoPermiso.Concedido
+        viewModel.refrescar()
+
+        assertTrue(viewModel.uiState.value.alertasActivas)
+    }
+
+    @Test
     fun conPermisoSePuedenApagarLasAlertas() = runTest {
         val viewModel = viewModelCon(GestorFalso(EstadoPermiso.Concedido))
 

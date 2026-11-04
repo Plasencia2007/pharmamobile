@@ -33,7 +33,11 @@ class PermisosViewModel(private val gestor: GestorPermisos) : ViewModel() {
     fun refrescar() {
         viewModelScope.launch {
             val estado = gestor.estado(Permiso.NOTIFICACIONES)
-            _uiState.update { it.copy(notificaciones = estado) }
+            _uiState.update {
+                // Conceder el permiso desde Ajustes es pedir las alertas, aunque antes se hubieran negado.
+                val recienConcedido = estado == EstadoPermiso.Concedido && it.notificaciones != EstadoPermiso.Concedido
+                it.copy(notificaciones = estado, alertasElegidas = it.alertasElegidas || recienConcedido)
+            }
         }
     }
 

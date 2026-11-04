@@ -85,7 +85,7 @@ class ProductoViewModel(
 
     private fun avisoDeSincronizacion(fallo: Throwable): String =
         when (val error = (fallo as? ErrorApiException)?.error) {
-            ErrorApi.SinConexion, ErrorApi.TiempoAgotado -> AVISO_SIN_CONEXION
+            ErrorApi.SinConexion -> AVISO_SIN_CONEXION
             null -> fallo.message ?: "No se pudo sincronizar"
             else -> mensajeDe(error)
         }

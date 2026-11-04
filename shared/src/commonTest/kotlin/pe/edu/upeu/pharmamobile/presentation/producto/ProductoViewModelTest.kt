@@ -40,7 +40,8 @@ private class FakeProductoRepository(
     productosIniciales: List<Producto> = emptyList(),
     private val fallarAlSincronizar: Boolean = false,
     private val fallarAlEliminar: Boolean = false,
-    private val errorValidacionAlRegistrar: Map<String, String>? = null
+    private val errorValidacionAlRegistrar: Map<String, String>? = null,
+    private val errorAlSincronizar: ErrorApi? = null
 ) : ProductoRepository {
 
     // Como la base local: una fuente que emite de nuevo con cada escritura.
@@ -70,6 +71,7 @@ private class FakeProductoRepository(
     override suspend fun sincronizar(): ResumenSync {
         sincronizarLlamadas++
         if (fallarAlSincronizar) throw IOException("Fallo simulado de red")
+        errorAlSincronizar?.let { throw ErrorApiException(it) }
         return ResumenSync(0, 0, 0)
     }
 
@@ -142,6 +144,17 @@ class ProductoViewModelTest {
         val fase = viewModel.uiState.value.fase
         assertTrue(fase is ProductoUiState.FaseInventario.ConProductos)
         assertEquals(3, fase.productos.size)
+    }
+
+    @Test
+    fun unServidorQueNoRespondeNoSeInformaComoFaltaDeConexion() = runTest {
+        val viewModel = viewModelCon(FakeProductoRepository(errorAlSincronizar = ErrorApi.TiempoAgotado))
+
+        dispatcher.scheduler.advanceUntilIdle()
+
+        val sincronizacion = viewModel.uiState.value.estadoSincronizacion
+        assertEquals("La solicitud tardó demasiado. Intenta nuevamente.", sincronizacion.aviso)
+        assertFalse(sincronizacion.sinConexion)
     }
 
     @Test
