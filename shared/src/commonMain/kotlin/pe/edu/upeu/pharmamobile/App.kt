@@ -46,6 +46,7 @@ import pe.edu.upeu.pharmamobile.di.NOMBRE_DEPURACION
 import pe.edu.upeu.pharmamobile.domain.model.Permisos
 import pe.edu.upeu.pharmamobile.domain.model.Sesion
 import pe.edu.upeu.pharmamobile.domain.port.Notificador
+import pe.edu.upeu.pharmamobile.domain.port.Telemetria
 import pe.edu.upeu.pharmamobile.navigation.Screen
 import pe.edu.upeu.pharmamobile.presentation.cliente.ClienteScreen
 import pe.edu.upeu.pharmamobile.presentation.components.DockNavegacion
@@ -87,6 +88,7 @@ fun App() = KoinContext {
         onPauseOrDispose { }
     }
     val notificador: Notificador = koinInject()
+    val telemetria: Telemetria = koinInject()
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -177,6 +179,10 @@ fun App() = KoinContext {
                     alCerrarSesion = sesionViewModel::cerrarSesion,
                     depuracion = depuracion,
                     alAlterarToken = sesionViewModel::alterarTokenGuardado,
+                    alProbarTelemetria = {
+                        telemetria.registrarError(IllegalStateException("Error de prueba"), mapOf("pantalla" to "ajustes"))
+                        mostrarExito("Error de prueba registrado")
+                    },
                     onVolver = { pantallaActual = Screen.Inicio },
                     guardados = (estadoProductos.fase as? ProductoUiState.FaseInventario.ConProductos)?.productos?.size ?: 0,
                     porEnviar = estadoProductos.pendientes

@@ -59,6 +59,7 @@ fun ConfigScreen(
     alCerrarSesion: () -> Unit,
     depuracion: Boolean,
     alAlterarToken: () -> Unit,
+    alProbarTelemetria: () -> Unit = {},
     onVolver: () -> Unit = {},
     guardados: Int = 0,
     porEnviar: Int = 0
@@ -162,6 +163,13 @@ fun ConfigScreen(
                 shape = RoundedCornerShape(24.dp)
             ) {
                 Text("Depuración: alterar un carácter del token", style = MaterialTheme.typography.labelLarge, color = colores.onSurface)
+            }
+            OutlinedButton(
+                onClick = alProbarTelemetria,
+                modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                shape = RoundedCornerShape(24.dp)
+            ) {
+                Text("Depuración: enviar un error de prueba", style = MaterialTheme.typography.labelLarge, color = colores.onSurface)
             }
         }
 

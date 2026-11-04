@@ -28,6 +28,12 @@ internal class AlmacenVacio : AlmacenSeguro {
 /** PharmaSoft simulado: registra el orden de las llamadas y puede "perder la red". */
 internal class ServidorFalso {
     var conectado = true
+
+    /** Si no es null, todo POST responde este error (503, 409, 401...). */
+    var errorEnPost: HttpStatusCode? = null
+
+    /** Rechaza con 409 solo el producto de este nombre. */
+    var rechazarNombre: String? = null
     val llamadas = mutableListOf<String>()
     val productos = mutableListOf<ProductoResponseDto>()
     private var siguienteId = 100L
@@ -40,6 +46,8 @@ internal class ServidorFalso {
             peticion.method == HttpMethod.Post && ruta.endsWith("/productos") -> {
                 llamadas += "POST"
                 val cuerpo = Json.decodeFromString<ProductoRequestDto>((peticion.body as TextContent).text)
+                errorEnPost?.let { return@MockEngine respondError(it) }
+                if (cuerpo.nombre == rechazarNombre) return@MockEngine respondError(HttpStatusCode.Conflict)
                 val nuevo = ProductoResponseDto(siguienteId++, cuerpo.nombre, cuerpo.precio, cuerpo.stock, cuerpo.estado)
                 productos += nuevo
                 respond(Json.encodeToString(ProductoResponseDto.serializer(), nuevo), HttpStatusCode.Created, json)
