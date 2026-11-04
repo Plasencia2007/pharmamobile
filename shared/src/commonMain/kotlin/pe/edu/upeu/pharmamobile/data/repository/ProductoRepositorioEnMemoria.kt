@@ -4,6 +4,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import pe.edu.upeu.pharmamobile.domain.model.Producto
+import pe.edu.upeu.pharmamobile.domain.model.ResumenSync
 import pe.edu.upeu.pharmamobile.domain.repository.ProductoRepository
 import pe.edu.upeu.pharmamobile.domain.result.ResultadoProductos
 
@@ -65,7 +66,7 @@ class ProductoRepositorioEnMemoria : ProductoRepository {
 
     override fun observar(): Flow<List<Producto>> = flow { emit(inventario.toList()) }
 
-    override suspend fun sincronizar() = Unit
+    override suspend fun sincronizar() = ResumenSync(enviadas = 0, fallidas = 0, pendientes = 0)
 
     override suspend fun obtener(id: Long): Producto {
         delay(300)

@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import pe.edu.upeu.pharmamobile.db.PharmaDb
 import pe.edu.upeu.pharmamobile.domain.model.Producto
+import pe.edu.upeu.pharmamobile.domain.repository.ProductoLocalRepository
 import pe.edu.upeu.pharmamobile.db.Producto as FilaProducto
 
 /**
@@ -16,7 +17,7 @@ import pe.edu.upeu.pharmamobile.db.Producto as FilaProducto
  * por SQLDelight y el modelo de dominio. No conoce Ktor ni los DTO del
  * backend, ni el backend a ella.
  */
-class ProductoLocal(base: PharmaDb) {
+class ProductoLocal(base: PharmaDb) : ProductoLocalRepository {
 
     private val consultas = base.productoQueries
     private val sincronizacion = base.sincronizacionQueries
@@ -25,7 +26,9 @@ class ProductoLocal(base: PharmaDb) {
     fun observarUltimaSincronizacion(): Flow<Long?> =
         sincronizacion.ultima().asFlow().mapToOneOrNull(Dispatchers.Default)
 
-    fun registrarSincronizacion(instante: Long) = sincronizacion.registrar(instante)
+    override fun registrarSincronizacion(instante: Long) {
+        sincronizacion.registrar(instante)
+    }
 
     /** La pantalla se suscribe una vez: emite de nuevo cada vez que la tabla cambia. */
     fun observar(): Flow<List<Producto>> =
@@ -42,11 +45,11 @@ class ProductoLocal(base: PharmaDb) {
             .map { it.aDominio() }
 
     /** Filas que todavia se pueden enviar, de la mas antigua a la mas nueva. */
-    fun pendientesPorEnviar(maxIntentos: Int): List<Producto> =
+    override fun pendientes(maxIntentos: Int): List<Producto> =
         consultas.pendientesPorEnviar(maxIntentos.toLong()).executeAsList()
             .map { it.aDominio() }
 
-    fun contarPendientes(maxIntentos: Int): Int =
+    override fun contarPendientes(maxIntentos: Int): Int =
         consultas.contarPendientes(maxIntentos.toLong()).executeAsOne().toInt()
 
     fun observarPendientes(maxIntentos: Int): Flow<Int> =
@@ -55,12 +58,17 @@ class ProductoLocal(base: PharmaDb) {
     fun observarFallidas(maxIntentos: Int): Flow<Int> =
         consultas.contarFallidas(maxIntentos.toLong()).asFlow().mapToOne(Dispatchers.Default).map { it.toInt() }
 
-    fun sumarIntento(id: Long, motivo: String) = consultas.sumarIntento(motivo, id)
+    override fun sumarIntento(id: Long, motivo: String) {
+        consultas.sumarIntento(motivo, id)
+    }
 
-    fun marcarFallida(id: Long, motivo: String, maxIntentos: Int) =
+    override fun marcarFallida(id: Long, motivo: String, maxIntentos: Int) {
         consultas.marcarFallida(maxIntentos.toLong(), motivo, id)
+    }
 
-    fun confirmar(idLocal: Long, idServidor: Long) = consultas.confirmar(idServidor, idLocal)
+    override fun confirmar(idLocal: Long, idServidor: Long) {
+        consultas.confirmar(idServidor, idLocal)
+    }
 
     fun reiniciarFallidas(maxIntentos: Int) = consultas.reiniciarFallidas(maxIntentos.toLong())
 
@@ -101,6 +109,8 @@ class ProductoLocal(base: PharmaDb) {
             productos.forEach { insertar(it.copy(pendiente = false)) }
         }
     }
+
+    override fun conciliar(productos: List<Producto>) = reemplazarSincronizados(productos)
 
     private fun insertar(p: Producto) =
         consultas.insertar(

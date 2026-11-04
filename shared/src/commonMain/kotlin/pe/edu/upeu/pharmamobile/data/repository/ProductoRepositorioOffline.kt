@@ -2,16 +2,17 @@ package pe.edu.upeu.pharmamobile.data.repository
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import pe.edu.upeu.pharmamobile.data.local.ProductoLocal
 import pe.edu.upeu.pharmamobile.data.mapper.toDomain
 import pe.edu.upeu.pharmamobile.data.mapper.toRequest
 import pe.edu.upeu.pharmamobile.data.remote.ProductoApi
+import pe.edu.upeu.pharmamobile.domain.model.ColaEnvio
 import pe.edu.upeu.pharmamobile.domain.model.Producto
+import pe.edu.upeu.pharmamobile.domain.model.ResumenSync
 import pe.edu.upeu.pharmamobile.domain.repository.ProductoRepository
+import pe.edu.upeu.pharmamobile.domain.usecase.SincronizarUseCase
 import kotlin.time.Clock
-
-/** Productos que se piden al servidor en cada sincronizacion (una sola pagina grande). */
-private const val TAMANIO_SINCRONIZACION = 100
 
 /**
  * Repositorio offline-first (Sesion 11). La base local es la unica fuente
@@ -27,9 +28,16 @@ class ProductoRepositorioOffline(
     private val ahora: () -> Long = { Clock.System.now().toEpochMilliseconds() }
 ) : ProductoRepository {
 
+    private val sincronizacion = SincronizarUseCase(local, EnvioRepositorioRest(remoto, categoriaPorDefecto), ahora)
+
     override fun observar(): Flow<List<Producto>> = local.observar()
 
     override fun observarUltimaSincronizacion(): Flow<Long?> = local.observarUltimaSincronizacion()
+
+    override fun observarCola(): Flow<ColaEnvio> = combine(
+        local.observarPendientes(SincronizarUseCase.MAX_INTENTOS),
+        local.observarFallidas(SincronizarUseCase.MAX_INTENTOS)
+    ) { pendientes, fallidas -> ColaEnvio(pendientes, fallidas) }
 
     override suspend fun obtener(id: Long): Producto =
         local.obtener(id) ?: remoto.obtener(id).toDomain().also { local.guardarSincronizado(it) }
@@ -59,24 +67,11 @@ class ProductoRepositorioOffline(
         local.desactivar(id)
     }
 
-    /** Primero subir, despues bajar: al reves, la lista del servidor borraria lo creado sin red. */
-    override suspend fun sincronizar() {
-        subirPendientes()
-        local.reemplazarSincronizados(
-            remoto.listar(pagina = 0, tamanio = TAMANIO_SINCRONIZACION).contenido.map { it.toDomain() }
-        )
-        // Solo se llega aqui si la subida y la bajada terminaron bien: un fallo a medias
-        // lanza antes y conserva la marca anterior, que es la de los datos que se ven.
-        local.registrarSincronizacion(ahora())
-    }
+    /** La logica de la cola vive en SincronizarUseCase; aqui solo se devuelve su balance. */
+    override suspend fun sincronizar(): ResumenSync = sincronizacion()
 
-    private suspend fun subirPendientes() {
-        local.pendientes().forEach { pendiente ->
-            remoto.crear(pendiente.toRequest(categoriaPorDefecto))
-            // El servidor ya lo tiene con su id real y volvera en la lista: la fila local
-            // con id negativo sobraria y se reenviaria en cada sincronizacion (duplicados).
-            local.borrar(pendiente.id)
-        }
+    override suspend fun reintentarFallidas() {
+        local.reiniciarFallidas(SincronizarUseCase.MAX_INTENTOS)
     }
 
     /** Un fallo de red no debe tumbar la operacion local: queda pendiente y se reintenta al sincronizar. */

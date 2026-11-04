@@ -8,6 +8,7 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import pe.edu.upeu.pharmamobile.domain.model.Producto
+import pe.edu.upeu.pharmamobile.domain.model.ResumenSync
 import pe.edu.upeu.pharmamobile.domain.platform.Compartidor
 import pe.edu.upeu.pharmamobile.domain.repository.ProductoRepository
 import pe.edu.upeu.pharmamobile.domain.usecase.ObtenerProductoUseCase
@@ -26,7 +27,7 @@ private class CompartidorFalso : Compartidor {
 
 private class RepositorioConUnProducto(private val producto: Producto) : ProductoRepository {
     override fun observar() = flowOf(listOf(producto))
-    override suspend fun sincronizar() = Unit
+    override suspend fun sincronizar() = ResumenSync(0, 0, 0)
     override suspend fun obtener(id: Long) = producto
     override suspend fun registrar(producto: Producto) = producto
     override suspend fun actualizar(producto: Producto) = producto

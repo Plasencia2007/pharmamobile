@@ -12,6 +12,7 @@ import kotlinx.io.IOException
 import pe.edu.upeu.pharmamobile.domain.error.ErrorApi
 import pe.edu.upeu.pharmamobile.domain.error.ErrorApiException
 import pe.edu.upeu.pharmamobile.domain.model.Producto
+import pe.edu.upeu.pharmamobile.domain.model.ResumenSync
 import pe.edu.upeu.pharmamobile.domain.repository.ProductoRepository
 import pe.edu.upeu.pharmamobile.domain.usecase.ActualizarProductoUseCase
 import pe.edu.upeu.pharmamobile.domain.usecase.EliminarProductoUseCase
@@ -64,9 +65,10 @@ private class FakeProductoRepository(
         return conId
     }
 
-    override suspend fun sincronizar() {
+    override suspend fun sincronizar(): ResumenSync {
         sincronizarLlamadas++
         if (fallarAlSincronizar) throw IOException("Fallo simulado de red")
+        return ResumenSync(0, 0, 0)
     }
 
     override suspend fun obtener(id: Long): Producto =

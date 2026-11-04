@@ -2,7 +2,9 @@ package pe.edu.upeu.pharmamobile.domain.repository
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
+import pe.edu.upeu.pharmamobile.domain.model.ColaEnvio
 import pe.edu.upeu.pharmamobile.domain.model.Producto
+import pe.edu.upeu.pharmamobile.domain.model.ResumenSync
 
 /**
  * Contrato offline-first (Sesion 11): la interfaz lee siempre de la base
@@ -27,7 +29,13 @@ interface ProductoRepository {
     suspend fun eliminar(id: Long)
 
     /** Sube lo pendiente y DESPUES trae la lista del servidor. En ese orden. */
-    suspend fun sincronizar()
+    suspend fun sincronizar(): ResumenSync
+
+    /** Devuelve a la cola las filas fallidas: es decision del usuario, no un reintento automatico. */
+    suspend fun reintentarFallidas() = Unit
+
+    /** Cuantas filas faltan por enviar y cuantas fallaron, leido de la base local. */
+    fun observarCola(): Flow<ColaEnvio> = flowOf(ColaEnvio())
 
     /**
      * Cuando termino bien la ultima sincronizacion (milisegundos epoch), o null si
