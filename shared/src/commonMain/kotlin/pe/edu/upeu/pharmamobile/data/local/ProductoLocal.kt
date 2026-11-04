@@ -2,6 +2,7 @@ package pe.edu.upeu.pharmamobile.data.local
 
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
+import app.cash.sqldelight.coroutines.mapToOne
 import app.cash.sqldelight.coroutines.mapToOneOrNull
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -39,6 +40,29 @@ class ProductoLocal(base: PharmaDb) {
     fun pendientes(): List<Producto> =
         consultas.listarPendientes().executeAsList()
             .map { it.aDominio() }
+
+    /** Filas que todavia se pueden enviar, de la mas antigua a la mas nueva. */
+    fun pendientesPorEnviar(maxIntentos: Int): List<Producto> =
+        consultas.pendientesPorEnviar(maxIntentos.toLong()).executeAsList()
+            .map { it.aDominio() }
+
+    fun contarPendientes(maxIntentos: Int): Int =
+        consultas.contarPendientes(maxIntentos.toLong()).executeAsOne().toInt()
+
+    fun observarPendientes(maxIntentos: Int): Flow<Int> =
+        consultas.contarPendientes(maxIntentos.toLong()).asFlow().mapToOne(Dispatchers.Default).map { it.toInt() }
+
+    fun observarFallidas(maxIntentos: Int): Flow<Int> =
+        consultas.contarFallidas(maxIntentos.toLong()).asFlow().mapToOne(Dispatchers.Default).map { it.toInt() }
+
+    fun sumarIntento(id: Long, motivo: String) = consultas.sumarIntento(motivo, id)
+
+    fun marcarFallida(id: Long, motivo: String, maxIntentos: Int) =
+        consultas.marcarFallida(maxIntentos.toLong(), motivo, id)
+
+    fun confirmar(idLocal: Long, idServidor: Long) = consultas.confirmar(idServidor, idLocal)
+
+    fun reiniciarFallidas(maxIntentos: Int) = consultas.reiniciarFallidas(maxIntentos.toLong())
 
     /**
      * Guarda lo que el usuario creo sin conexion con un id local NEGATIVO: un
@@ -94,6 +118,8 @@ class ProductoLocal(base: PharmaDb) {
         precio = precio,
         stock = stock.toInt(),
         activo = activo == 1L,
-        pendiente = pendiente == 1L
+        pendiente = pendiente == 1L,
+        intentos = intentos.toInt(),
+        ultimoError = ultimoError
     )
 }

@@ -7,11 +7,21 @@ data class Producto(
     val stock: Int,
     val activo: Boolean = true,
     /** Creado o modificado en el dispositivo y todavia desconocido para el servidor (offline-first). */
-    val pendiente: Boolean = false
+    val pendiente: Boolean = false,
+    /** Veces que se intento enviar esta fila pendiente al servidor. */
+    val intentos: Int = 0,
+    /** Por que fallo el ultimo envio; null si todavia no fallo. */
+    val ultimoError: String? = null
 ) {
     companion object {
         const val STOCK_MINIMO = 5
+
+        /** Tope de la cola de envio: al alcanzarlo la fila deja de reintentarse y se muestra como fallida. */
+        const val MAX_INTENTOS_ENVIO = 5
     }
+
+    /** Fila pendiente que agoto sus intentos o fue rechazada: espera una decision del usuario. */
+    fun envioFallido(): Boolean = pendiente && intentos >= MAX_INTENTOS_ENVIO
 
     init {
         require(value = nombre.isNotBlank()) {

@@ -1,0 +1,4 @@
+-- Version 2 -> 3 (sesion 13): la cola de pendientes recuerda los intentos y el
+-- ultimo error de cada fila. Conserva los productos y pendientes ya guardados.
+ALTER TABLE producto ADD COLUMN intentos INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE producto ADD COLUMN ultimoError TEXT;

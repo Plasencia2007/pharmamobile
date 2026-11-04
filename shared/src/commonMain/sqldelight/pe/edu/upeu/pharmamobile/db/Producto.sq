@@ -7,7 +7,10 @@ CREATE TABLE producto (
     precio     REAL    NOT NULL,
     stock      INTEGER NOT NULL,
     activo     INTEGER NOT NULL DEFAULT 1,
-    pendiente  INTEGER NOT NULL DEFAULT 0
+    pendiente  INTEGER NOT NULL DEFAULT 0,
+    -- Cola de envio (sesion 13): cuantas veces se intento y que fallo la ultima vez.
+    intentos   INTEGER NOT NULL DEFAULT 0,
+    ultimoError TEXT
 );
 
 listarTodos:
@@ -15,6 +18,31 @@ SELECT * FROM producto ORDER BY nombre ASC;
 
 listarPendientes:
 SELECT * FROM producto WHERE pendiente = 1;
+
+pendientesPorEnviar:
+SELECT * FROM producto WHERE pendiente = 1 AND intentos < :maxIntentos
+ORDER BY id DESC;
+
+contarPendientes:
+SELECT COUNT(*) FROM producto WHERE pendiente = 1 AND intentos < :maxIntentos;
+
+contarFallidas:
+SELECT COUNT(*) FROM producto WHERE pendiente = 1 AND intentos >= :maxIntentos;
+
+sumarIntento:
+UPDATE producto SET intentos = intentos + 1, ultimoError = :error WHERE id = :id;
+
+-- Rechazo definitivo: agota los intentos para que la fila salga de la cola y quede visible.
+marcarFallida:
+UPDATE producto SET intentos = :maxIntentos, ultimoError = :error WHERE id = :id;
+
+-- El servidor acepto la fila: pasa del id local negativo al id real y sale de la cola.
+confirmar:
+UPDATE producto SET id = :idServidor, pendiente = 0, intentos = 0, ultimoError = NULL WHERE id = :idLocal;
+
+-- El usuario pide reintentar: las fallidas vuelven a la cola con el contador en cero.
+reiniciarFallidas:
+UPDATE producto SET intentos = 0, ultimoError = NULL WHERE pendiente = 1 AND intentos >= :maxIntentos;
 
 obtenerPorId:
 SELECT * FROM producto WHERE id = ?;
