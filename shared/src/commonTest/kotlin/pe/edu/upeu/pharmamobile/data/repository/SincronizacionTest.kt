@@ -100,6 +100,17 @@ class SincronizacionTest {
     }
 
     @Test
+    fun unServidorQueNoRespondeGastaIntentosPorqueSiHayRed() = runTest {
+        val fila = pendiente()
+        servidor.sinRespuesta = true
+
+        runCatching { sincronizar() }
+
+        assertEquals(1, assertNotNull(local.obtener(fila.id)).intentos)
+        assertEquals(listOf(1_000L), esperas)
+    }
+
+    @Test
     fun sinRedNoSeGastanIntentos() = runTest {
         val fila = pendiente()
         servidor.conectado = false

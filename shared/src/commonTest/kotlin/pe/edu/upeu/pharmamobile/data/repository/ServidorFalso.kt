@@ -3,6 +3,7 @@ package pe.edu.upeu.pharmamobile.data.repository
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.engine.mock.respondError
+import io.ktor.client.network.sockets.SocketTimeoutException
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -39,8 +40,12 @@ internal class ServidorFalso {
     private var siguienteId = 100L
     private val json = headersOf(HttpHeaders.ContentType, "application/json")
 
+    /** Hay conexion pero el servidor no responde a tiempo. */
+    var sinRespuesta = false
+
     val motor = MockEngine { peticion ->
         if (!conectado) throw IOException("Sin red")
+        if (sinRespuesta) throw SocketTimeoutException("Sin respuesta del servidor")
         val ruta = peticion.url.encodedPath
         when {
             peticion.method == HttpMethod.Post && ruta.endsWith("/productos") -> {

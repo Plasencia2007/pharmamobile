@@ -1,6 +1,7 @@
 package pe.edu.upeu.pharmamobile.data.remote
 
 import io.ktor.client.call.body
+import io.ktor.client.network.sockets.SocketTimeoutException
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.client.plugins.ServerResponseException
@@ -31,6 +32,10 @@ suspend fun <T> ejecutarLlamada(bloque: suspend () -> T): Result<T> =
     } catch (e: ServerResponseException) {
         Result.failure(ErrorApiException(ErrorApi.Servidor))
     } catch (e: HttpRequestTimeoutException) {
+        Result.failure(ErrorApiException(ErrorApi.TiempoAgotado))
+    } catch (e: SocketTimeoutException) {
+        // El servidor acepto la conexion y no respondio: hay red. Sin esta rama caeria en
+        // IOException como SinConexion y un servidor colgado nunca gastaria intentos.
         Result.failure(ErrorApiException(ErrorApi.TiempoAgotado))
     } catch (e: IOException) {
         Result.failure(ErrorApiException(ErrorApi.SinConexion))
