@@ -1,0 +1,3 @@
+POST /api/v1/productos (admin, nombre vacio y precio -1)
+{"status":400,"error":"Bad Request","message":"Existen errores de validación","path":"/api/v1/productos","validationErrors":{"nombre":"El nombre debe tener entre 3 y 150 caracteres","precio":"El precio debe ser mayor que cero"}}
+HTTP 400

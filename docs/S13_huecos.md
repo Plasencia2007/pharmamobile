@@ -34,6 +34,12 @@ Recorrido hecho el 4 de noviembre de 2026 en el emulador Pixel_8 (Android 15), c
 | H10 | Editar un producto sincronizado exige red | Media | **Sesión 14**: la cola de hoy solo cubre altas; extenderla es trabajo propio |
 | H7 | El siguiente usuario hereda los datos y pendientes del anterior | Media | **Sesión 14**: borrar al cerrar sesión perdería pendientes, así que requiere decidir el aviso previo. Mientras tanto, si el usuario no tiene permiso, el servidor rechaza el envío y la fila queda visible como fallida |
 
+| H11 | En un alta, un error de validación del servidor ya no llega al campo: el producto se guarda en local y la fila queda fallida con el motivo | Media | **Sesión 14**: validar en el teléfono las mismas reglas que el servidor (nombre de 3 a 150 caracteres). La edición sí muestra el error en su campo |
+
+## Fechas de cierre
+
+Los huecos H1, H3, H4, H5, H8 y H9 y los defectos de abajo se cerraron el 4 de noviembre de 2026. H2, H6, H7, H10 y H11 tienen fecha de cierre en la sesión 14, el 10 de noviembre de 2026. Ninguno se descartó.
+
 ## Defectos encontrados al probar contra el servicio real
 
 | Defecto | Corrección |
