@@ -33,3 +33,11 @@ Recorrido hecho el 4 de noviembre de 2026 en el emulador Pixel_8 (Android 15), c
 | H6 | Se pierde lo escrito si la sesión vence al editar | Media | **Sesión 14**: encolar las ediciones (junto con H10) permite no depender del servidor al guardar |
 | H10 | Editar un producto sincronizado exige red | Media | **Sesión 14**: la cola de hoy solo cubre altas; extenderla es trabajo propio |
 | H7 | El siguiente usuario hereda los datos y pendientes del anterior | Media | **Sesión 14**: borrar al cerrar sesión perdería pendientes, así que requiere decidir el aviso previo. Mientras tanto, si el usuario no tiene permiso, el servidor rechaza el envío y la fila queda visible como fallida |
+
+## Defectos encontrados al probar contra el servicio real
+
+| Defecto | Corrección |
+|---|---|
+| Un servidor colgado se trataba como «sin conexión» y la fila no gastaba intentos | `SocketTimeoutException` pasa a tiempo agotado (`0213a64`) |
+| El aviso decía «Sin conexión» aunque había red | Aviso propio «No se pudo sincronizar» (`96985d4`) |
+| Al conceder el permiso desde Ajustes tras negarlo, las alertas quedaban apagadas | Conceder el permiso las reactiva (`96985d4`) |
